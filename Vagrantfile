@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
     cp.vm.provision "shell", path: "contrib/provision/vagrant-fix.sh"
     cp.vm.provision "shell", path: "contrib/provision/base.sh", reboot: true
     cp.vm.provision "shell", path: "contrib/provision/build.sh", privileged: false
-    cp.vm.provision "shell", path: "contrib/provision/control-plane-base.sh"
+    cp.vm.provision "shell", path: "contrib/provision/k8s-base.sh"
     cp.vm.provision "shell", path: "contrib/provision/control-plane.sh"
     cp.vm.provision "shell", path: "contrib/provision/kubeconfig.sh", privileged: false
     cp.vm.provision "shell", path: "contrib/provision/addons.sh", privileged: false
