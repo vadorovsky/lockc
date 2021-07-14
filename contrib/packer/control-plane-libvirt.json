@@ -1,0 +1,74 @@
+{
+  "builders": [
+    {
+      "add_force": true,
+      "boot_wait": "10s",
+      "communicator": "ssh",
+      "provider": "libvirt",
+      "source_path": "opensuse/Tumbleweed.x86_64",
+      "ssh_wait_timeout": "10000s",
+      "type": "vagrant"
+    }
+  ],
+  "provisioners": [
+    {
+      "inline": [
+	"mkdir -p /home/vagrant/etc/{containerd,docker,modules-load.d,sysctl.d,systemd/system}"
+      ],
+      "type": "shell"
+    },
+    {
+      "destination": "/home/vagrant/etc/modules-load.d/99-k8s.conf",
+      "source": "../etc/modules-load.d/99-k8s.conf",
+      "type": "file"
+    },
+    {
+      "destination": "/home/vagrant/etc/sysctl.d/99-k8s.conf",
+      "source": "../etc/sysctl.d/99-k8s.conf",
+      "type": "file"
+    },
+    {
+      "destination": "/home/vagrant/etc/systemd/system/containerd.service",
+      "source": "../systemd/containerd.service",
+      "type": "file"
+    },
+    {
+      "destination": "/home/vagrant/etc/systemd/system/enclave.service",
+      "source": "../systemd/enclave.service",
+      "type": "file"
+    },
+    {
+      "destination": "/home/vagrant/etc/containerd/config.toml",
+      "source": "../etc/containerd/config.toml",
+      "type": "file"
+    },
+    {
+      "destination": "/home/vagrant/etc/docker/daemon.json",
+      "source": "../etc/docker/daemon.json",
+      "type": "file"
+    },
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "type": "shell",
+      "scripts": [
+	"../provision/base.sh",
+	"../provision/k8s-base.sh"
+      ]
+    },
+    {
+      "inline": [
+	"cd /home/vagrant/etc",
+	"sudo -E find . -type f -exec install -m 0644 \"{}\" \"/etc/{}\" \\;"
+      ],
+      "type": "shell"
+    }
+  ],
+  "post-processors": [
+    [
+      {
+	"provider_override": "libvirt",
+	"type": "vagrant"
+      }
+    ]
+  ]
+}
