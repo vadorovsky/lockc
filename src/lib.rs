@@ -198,6 +198,14 @@ pub fn init_runtimes(map: &mut libbpf_rs::Map) -> Result<(), LoadProgramError> {
     Ok(())
 }
 
+pub fn bpf_skel<'a>() -> libbpf_rs::Result<LockcSkel<'a>> {
+    let skel_builder = LockcSkelBuilder::default();
+    let open_skel = skel_builder.open()?;
+    let skel = open_skel.load()?;
+
+    Ok(skel)
+}
+
 /// Performs the following BPF-related operations:
 /// - loading BPF programs
 /// - pinning BPF maps in BPFFS
@@ -215,9 +223,7 @@ pub fn init_runtimes(map: &mut libbpf_rs::Map) -> Result<(), LoadProgramError> {
 /// BPF maps is not migrated in any way. We need to come up with some sane copy
 /// mechanism.
 pub fn load_programs(path_base_ts: path::PathBuf) -> Result<(), LoadProgramError> {
-    let skel_builder = LockcSkelBuilder::default();
-    let open_skel = skel_builder.open()?;
-    let mut skel = open_skel.load()?;
+    let mut skel = bpf_skel()?;
 
     let mut path_map_runtimes = path_base_ts.join("map_runtimes");
     skel.maps_mut().runtimes().pin(&mut path_map_runtimes)?;
