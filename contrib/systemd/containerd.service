@@ -6,7 +6,7 @@ After=network.target local-fs.target
 [Service]
 ExecStartPre=-/sbin/modprobe overlay
 ExecStartPre=/usr/bin/mkdir -p /sys/fs/cgroup/systemd
-ExecStartPre=/usr/bin/mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd
+ExecStartPre=/bin/bash -c "findmnt -t cgroup --mountpoint /sys/fs/cgroup/systemd > /dev/null || mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd"
 ExecStart=/sbin/containerd
 
 Type=notify
