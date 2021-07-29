@@ -12,8 +12,8 @@ set -eux
 echo "nameserver 169.254.2.3" > /etc/resolv.conf
 
 zypper ref
-zypper up
-zypper dup
+zypper up -y
+zypper dup -y
 
 zypper install -y -t pattern \
     devel_basis \
@@ -32,10 +32,11 @@ zypper install -y \
     ethtool \
     jq \
     kernel-default \
-    -kernel-default-base \
+    -kernel-default-base* \
     libbpf-devel \
     libopenssl-devel \
     llvm \
+    meson \
     podman \
     podman-cni-config \
     rust \

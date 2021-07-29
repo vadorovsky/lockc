@@ -15,14 +15,12 @@ cp ${BASE_IMAGE} ${LOCKC_IMAGE}
 qemu-img resize ${LOCKC_IMAGE} 40G
 virt-resize --expand /dev/sda3 ${BASE_IMAGE} ${LOCKC_IMAGE}
 
-virt-customize -v -x -a \
+virt-customize -a \
     ${LOCKC_IMAGE} \
     --mkdir /etc/containerd \
     --mkdir /etc/docker \
-    --copy-in ../etc/modules-load.d/99-k8s.conf:/etc/modules-load.d/ \
-    --copy-in ../etc/sysctl.d/99-k8s.conf:/etc/sysctl.d/ \
-    --copy-in ../systemd/lockcd.service:/etc/systemd/system/ \
-    --copy-in ../etc/containerd/config.toml:/etc/containerd/ \
-    --copy-in ../etc/docker/daemon.json:/etc/docker/ \
-    --copy-in ../systemd/containerd.service:/etc/systemd/system/ \
+    --copy-in ../../etc/modules-load.d/99-k8s.conf:/etc/modules-load.d/ \
+    --copy-in ../../etc/sysctl.d/99-k8s.conf:/etc/sysctl.d/ \
+    --copy-in ../../systemd/containerd.service:/etc/systemd/system/ \
+    --copy-in ../install-lockc.sh:/usr/sbin/ \
     --run provision.sh
