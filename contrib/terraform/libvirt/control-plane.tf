@@ -4,9 +4,12 @@ resource "libvirt_volume" "control_plane" {
   count          = var.control_planes
 }
 
-
 data "template_file" "control_plane_commands" {
   template = file("cloud-init/control-plane.tpl")
+
+  vars = {
+    username = var.username
+  }
 }
 
 data "template_file" "control_plane_cloud_init" {
@@ -17,6 +20,7 @@ data "template_file" "control_plane_cloud_init" {
     hostname        = "lockc-control-plane-${count.index}"
     locale          = var.locale
     timezone        = var.timezone
+    username        = var.username
     authorized_keys = join("\n", formatlist("      - %s", var.authorized_keys))
     commands        = join("\n", data.template_file.control_plane_commands.*.rendered)
   }
@@ -46,9 +50,19 @@ resource "libvirt_domain" "control_plane" {
 
   # Mount the source code.
   filesystem {
-    source     = "${path.cwd}/../../.."
-    target     = "lockc"
-    readonly   = false
+    source   = "${path.cwd}/../../.."
+    target   = "lockc"
+    readonly = false
+  }
+
+  # (Optionally) mount the kernel code.
+  dynamic "filesystem" {
+    for_each = var.custom_kernel ? [1] : []
+    content {
+      source   = pathexpand(var.kernel_source)
+      target   = "kernel"
+      readonly = false
+    }
   }
 
   network_interface {

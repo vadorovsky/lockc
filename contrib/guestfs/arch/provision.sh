@@ -11,27 +11,17 @@ set -eux
 # 169.254.2.3 is the host's address in qemu user mode networking.
 echo "nameserver 169.254.2.3" > /etc/resolv.conf
 
-# Install mainline kernel
-rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-dnf -y install https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm
-dnf --enablerepo=elrepo-kernel -y install kernel-ml
-sed -i -e "s|GRUB_DEFAULT.*$|GRUB_DEFAULT=0|" /etc/default/grub
-grub2-mkconfig -o /boot/grub2/grub.cfg
-
-dnf config-manager --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
-dnf -y install \
-    https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-dnf -y groupinstall "Development Tools"
-dnf -y install \
+pacman-key --init
+pacman-key --populate
+pacman-key --refresh-keys
+pacman --noconfirm -Syu
+# pacman-key --init
+pacman --noconfirm -Sy \
     clang \
-    containerd.io \
+    containerd \
     conntrack-tools \
-    docker-ce \
-    docker-ce-cli \
-    iptables-ebtables \
+    docker \
     llvm \
-    iproute-tc \
     jq \
     socat
 

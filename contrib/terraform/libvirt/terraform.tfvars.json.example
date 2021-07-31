@@ -2,13 +2,16 @@
   "libvirt_uri": "qemu:///system",
   "pool": "default",
   "image_name": "lockc-image",
-  "image_path": "../../guestfs/lockc-base.qcow2",
+  "image_path": "../../guestfs/centos/lockc-base.qcow2",
+  "custom_kernel": false,
+  "kernel_source": "~/repos/linux",
   "network_name": "lockc-network",
   "network_mode": "nat",
   "dns_domain": "lockc.local",
   "network_cidr": "10.16.0.0/24",
   "locale": "en_US.UTF-8",
   "timezone": "Etc/UTC",
+  "username": "lockc",
   "authorized_keys": [
     ""
   ],

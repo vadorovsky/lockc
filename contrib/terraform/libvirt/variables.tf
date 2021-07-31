@@ -15,7 +15,17 @@ variable "image_name" {
 
 variable "image_path" {
   description = "Path or URL to the image"
-  default     = "../../guestfs/lockc-base.qcow2"
+  default     = "../../guestfs/centos/lockc-base.qcow2"
+}
+
+variable "custom_kernel" {
+  description = "If true, install the kernel from a local source tree"
+  default     = false
+}
+
+variable "kernel_source" {
+  description = "Path to kernel source tree"
+  default     = "~/repos/linux"
 }
 
 variable "network_name" {
@@ -46,6 +56,11 @@ variable "locale" {
 variable "timezone" {
   description = "Timezone to set on all the nodes"
   default     = "Etc/UTC"
+}
+
+variable "username" {
+  description = "Login of the default non-root user"
+  default     = "lockc"
 }
 
 variable "authorized_keys" {
