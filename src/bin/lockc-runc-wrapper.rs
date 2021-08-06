@@ -231,8 +231,7 @@ async fn main() -> anyhow::Result<()> {
         ContainerAction::Other => {
             match container_id_o {
                 Some(v) => {
-                    let container_key = lockc::hash(&v)?;
-                    lockc::add_process(container_key, pid_u)?;
+                    lockc::add_process(&v, pid_u)?;
                     cmd.status().await?;
                     lockc::delete_process(pid_u)?;
                 }
@@ -241,27 +240,24 @@ async fn main() -> anyhow::Result<()> {
                     // subcommand to be detected as wrapped and thus allowed by
                     // the LSM program to execute. It's only to handle subcommands
                     // like `init`, `list` or `spec`, so we make it restricted.
-                    lockc::add_container(0, pid_u, lockc::ContainerPolicyLevel::Restricted)?;
+                    lockc::add_container("", pid_u, lockc::ContainerPolicyLevel::Restricted)?;
                     cmd.status().await?;
-                    lockc::delete_container(0)?;
+                    lockc::delete_container("")?;
                 }
             }
         }
         ContainerAction::Create => {
-            let container_key = lockc::hash(&container_id_o.unwrap())?;
             // Initialize the container with the baseline policy.
-            lockc::add_container(container_key, pid_u, lockc::ContainerPolicyLevel::Baseline)?;
+            lockc::add_container(&container_id_o.unwrap(), pid_u, lockc::ContainerPolicyLevel::Baseline)?;
             cmd.status().await?;
         }
         ContainerAction::Delete => {
-            let container_key = lockc::hash(&container_id_o.unwrap())?;
-            lockc::delete_container(container_key)?;
+            lockc::delete_container(&container_id_o.unwrap())?;
             cmd.status().await?;
         }
         ContainerAction::Start => {
             let container_id = container_id_o.unwrap();
-            let container_key = lockc::hash(&container_id)?;
-            lockc::add_process(container_key, pid_u)?;
+            lockc::add_process(&container_id, pid_u)?;
 
             let namespace = container_namespace(&container_id, container_root)?;
 

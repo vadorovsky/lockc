@@ -107,6 +107,7 @@
 extern crate lazy_static;
 
 use byteorder::{NativeEndian, WriteBytesExt};
+use std::convert::TryInto;
 use std::io::prelude::*;
 use std::{fs, path};
 
@@ -156,23 +157,18 @@ pub enum HashError {
     ByteWriteError(#[from] std::io::Error),
 }
 
-/// Simple string hash function which allows to use strings as keys for BPF
-/// maps even though they use u32 as a key type.
-pub fn hash(s: &str) -> Result<u32, HashError> {
-    let mut hash: u32 = 0;
-
-    for c in s.chars() {
-        let c_u32 = c as u32;
-        hash += c_u32;
-    }
-
-    Ok(hash)
+#[repr(C, packed)]
+struct RuntimeKey {
+    comm: [char; 16],
 }
 
 #[derive(thiserror::Error, Debug)]
 pub enum LoadProgramError {
     #[error("hash error")]
     HashError(#[from] HashError),
+
+    #[error("could not convert from slice")]
+    TryFromSliceError(#[from] std::array::TryFromSliceError),
 
     #[error("could not convert the hash to a byte array")]
     ByteWriteError(#[from] std::io::Error),
@@ -189,9 +185,10 @@ pub fn init_runtimes(map: &mut libbpf_rs::Map) -> Result<(), LoadProgramError> {
     let val: [u8; 4] = [0, 0, 0, 0];
 
     for runtime in runtimes.iter() {
-        let key = hash(runtime)?;
-        let mut key_b = vec![];
-        key_b.write_u32::<NativeEndian>(key)?;
+        let key = RuntimeKey {
+            comm: runtime.chars().collect::<Vec<char>>().as_slice().try_into()?,
+        };
+        let key_b = unsafe { plain::as_bytes(&key) };
         map.update(&key_b, &val, libbpf_rs::MapFlags::empty())?;
     }
 
@@ -321,8 +318,8 @@ pub fn skel_reused_maps<'a>() -> Result<LockcSkel<'a>, SkelReusedMapsError> {
 }
 
 #[repr(C, packed)]
-struct Process {
-    container_id: u32,
+struct ContainerKey {
+    container_id: [char; 1024],
 }
 
 #[repr(C, packed)]
@@ -335,6 +332,9 @@ pub enum ReusedMapsOperationError {
     #[error("libbpf error")]
     LibbpfError(#[from] libbpf_rs::Error),
 
+    #[error("could not convert from slice")]
+    TryFromSliceError(#[from] std::array::TryFromSliceError),
+
     #[error("I/O error")]
     IOError(#[from] std::io::Error),
 
@@ -346,15 +346,16 @@ pub enum ReusedMapsOperationError {
 }
 
 pub fn add_container(
-    container_key: u32,
+    container_id: &str,
     pid: u32,
     level: ContainerPolicyLevel,
 ) -> Result<(), ReusedMapsOperationError> {
     let mut skel = skel_reused_maps()?;
 
-    // let container_key = hash(container_id)?;
-    let mut container_key_b = vec![];
-    container_key_b.write_u32::<NativeEndian>(container_key)?;
+    let container_key = ContainerKey{
+        container_id: container_id.chars().collect::<Vec<char>>().as_slice().try_into()?,
+    };
+    let container_key_b = unsafe { plain::as_bytes(&container_key) };
 
     let container = Container {
         container_policy_level: level,
@@ -370,23 +371,20 @@ pub fn add_container(
     let mut process_key = vec![];
     process_key.write_u32::<NativeEndian>(pid)?;
 
-    let process = Process {
-        container_id: container_key,
-    };
-    let process_b = unsafe { plain::as_bytes(&process) };
-
     skel.maps_mut()
         .processes()
-        .update(&process_key, &process_b, libbpf_rs::MapFlags::empty())?;
+        .update(&process_key, &container_key_b, libbpf_rs::MapFlags::empty())?;
 
     Ok(())
 }
 
-pub fn delete_container(container_key: u32) -> Result<(), ReusedMapsOperationError> {
+pub fn delete_container(container_id: &str) -> Result<(), ReusedMapsOperationError> {
     let mut skel = skel_reused_maps()?;
 
-    let mut container_key_b = vec![];
-    container_key_b.write_u32::<NativeEndian>(container_key)?;
+    let container_key = ContainerKey{
+        container_id: container_id.chars().collect::<Vec<char>>().as_slice().try_into()?,
+    };
+    let container_key_b = unsafe { plain::as_bytes(&container_key) };
 
     skel.maps_mut().containers().delete(&container_key_b)?;
 
@@ -399,9 +397,10 @@ pub fn write_policy(
 ) -> Result<(), ReusedMapsOperationError> {
     let mut skel = skel_reused_maps()?;
 
-    let container_key = hash(container_id)?;
-    let mut container_key_b = vec![];
-    container_key_b.write_u32::<NativeEndian>(container_key)?;
+    let container_key = ContainerKey{
+        container_id: container_id.chars().collect::<Vec<char>>().as_slice().try_into()?,
+    };
+    let container_key_b = unsafe { plain::as_bytes(&container_key) };
 
     let container = Container {
         container_policy_level: level,
@@ -417,14 +416,14 @@ pub fn write_policy(
     Ok(())
 }
 
-pub fn add_process(container_key: u32, pid: u32) -> Result<(), ReusedMapsOperationError> {
+pub fn add_process(container_id: &str, pid: u32) -> Result<(), ReusedMapsOperationError> {
     let mut skel = skel_reused_maps()?;
 
     let mut process_key = vec![];
     process_key.write_u32::<NativeEndian>(pid)?;
 
-    let process = Process {
-        container_id: container_key,
+    let process = ContainerKey {
+        container_id: container_id.chars().collect::<Vec<char>>().as_slice().try_into()?,
     };
     let process_b = unsafe { plain::as_bytes(&process) };
 

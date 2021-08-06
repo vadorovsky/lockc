@@ -3,68 +3,13 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
+#include "maps.h"
+
 #ifndef NULL
 #define NULL 0
 #endif
 
 #define EPERM 1
-#define TASK_COMM_LEN 16
-/*
- * Max configurable PID limit (for x86_64, for the other architectures it's less
- * or equal).
- */
-#define PID_MAX_LIMIT 4194304
-
-/*
- * Maps and related structures
- * ===========================
- *
- * All structs below are either BPF maps or structures used as values of those
- * maps.
- */
-
-/*
- * runtimes - BPF map containing the process names of container runtime init
- * processes (for example: `runc:[2:INIT]` which is the name of every init
- * process for runc).
- */
-struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, 16);
-	__type(key, u32);
-	__type(value, u32);
-} runtimes SEC(".maps");
-
-enum container_policy_level {
-	POLICY_LEVEL_LOOKUP_ERR = -2,
-	POLICY_LEVEL_NOT_FOUND = -1,
-
-	POLICY_LEVEL_RESTRICTED,
-	POLICY_LEVEL_BASELINE,
-	POLICY_LEVEL_PRIVILEGED
-};
-
-struct container {
-	enum container_policy_level policy_level;
-};
-
-struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PID_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct container);
-} containers SEC(".maps");
-
-struct process {
-	u32 container_id;
-};
-
-struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PID_MAX_LIMIT);
-	__type(key, pid_t);
-	__type(value, struct process);
-} processes SEC(".maps");
 
 /*
  * Utils
@@ -74,25 +19,45 @@ struct {
  */
 
 /*
- * hash - simple string hash function which allows to use strings as keys for
- * BPF maps even though they use u32 as a key type.
- * @str: string to hash
- * @len: length of the string
+ * strcmp - compare the given strings.
+ * @s1: the 1st string
+ * @s2: the 2nd string
  *
- * Return: an u32 value representing the given string.
+ * Return: a lexicographicall difference between non-equal character. Which
+ * means 0 if the strings are equal.
+ *
+ * Based on the `strcmp` function in glibc (string/strcmp.c).
  */
-static __always_inline u32 hash(const char *str, size_t len)
+static __always_inline int strcmp(const char *s1,
+				  const char *s2)
 {
-	u32 hash = 0;
-	int i;
+	unsigned char c1, c2;
 
-	for (i = 0; i < len; i++) {
-		if (str[i] == '\0')
-			return hash;
-		hash += str[i];
+	do {
+		c1 = (unsigned char) *s1++;
+		c2 = (unsigned char) *s2++;
+		if (c1 == '\0')
+			return c1 - c2;
+	} while (c1 == c2);
+
+	return c1 - c2;
+}
+
+/*
+ * strlen - check the length of a null-terminated string.
+ * @s: the string
+ *
+ * Return: length of the string.
+ */
+static __always_inline size_t strlen(const char *s)
+{
+	size_t len = 0;
+
+	while (1) {
+		if (*s++ == '\0')
+			return len;
+		len++;
 	}
-
-	return hash;
 }
 
 /*
@@ -114,13 +79,14 @@ static __always_inline int handle_new_process(struct task_struct *parent,
 	pid_t ppid = BPF_CORE_READ(parent, pid);
 
 	/* Check if parent process is containerized. */
-	struct process *parent_lookup = bpf_map_lookup_elem(&processes, &ppid);
+	struct container_key *parent_lookup = bpf_map_lookup_elem(&processes, &ppid);
 	if (!parent_lookup) {
 		/* If not, check whether it's a container runtime process. */
 		// const char *comm = BPF_CORE_READ(child, comm);
-		// u32 runtime_key = hash(comm, TASK_COMM_LEN);
+		// struct runtime_key rk = {};
+		// __builtin_memcpy(rk.comm, comm, strlen(comm));
 		// u32 *runtime_lookup = bpf_map_lookup_elem(&runtimes,
-		// 					  &runtime_key);
+		// 					  &rk);
 		// if (runtime_lookup) {
 		// 	/*
 		// 	 * If yes, it means that's an unwrapped container
@@ -135,29 +101,24 @@ static __always_inline int handle_new_process(struct task_struct *parent,
 	}
 
 	/* Skip registration if process entry already exists. */
-	struct process *v = bpf_map_lookup_elem(&processes, &pid);
+	struct container_key *v = bpf_map_lookup_elem(&processes, &pid);
 	if (v != NULL)
 		return 0;
 
 	bpf_printk("found parent containerized process: %d\n", ppid);
 	bpf_printk("comm: %s\n", BPF_CORE_READ(child, comm));
 
-	pid_t container_id = parent_lookup->container_id;
-	u32 *container_lookup = bpf_map_lookup_elem(&containers, &container_id);
+	u32 *container_lookup = bpf_map_lookup_elem(&containers, parent_lookup);
 	if (!container_lookup) {
 		/* Shouldn't happen */
 		bpf_printk("error: handle_new_process: cound not find a "
 			   "container for a registered process %d, container id: %d\n",
-			   pid, container_id);
+			   pid, parent_lookup->container_id);
 		return -EPERM;
 	}
 
-	struct process new_p = {
-		.container_id = container_id
-	};
-
 	bpf_printk("adding containerized process: %d\n", pid);
-	err = bpf_map_update_elem(&processes, &pid, &new_p, 0);
+	err = bpf_map_update_elem(&processes, &pid, parent_lookup, 0);
 	if (err < 0)
 		return err;
 
@@ -180,7 +141,7 @@ static __always_inline enum container_policy_level get_policy_level(pid_t pid)
 {
 	int err;
 
-	struct process *p = bpf_map_lookup_elem(&processes, &pid);
+	struct container_key *p = bpf_map_lookup_elem(&processes, &pid);
 	if (!p) {
 		bpf_printk("could not find policy for pid %d\n", pid);
 		return POLICY_LEVEL_NOT_FOUND;
