@@ -117,6 +117,8 @@ use bpf::*;
 
 mod settings;
 
+mod bindings;
+
 lazy_static! {
     static ref SETTINGS: settings::Settings = settings::Settings::new().unwrap();
 }
@@ -157,11 +159,6 @@ pub enum HashError {
     ByteWriteError(#[from] std::io::Error),
 }
 
-#[repr(C, packed)]
-struct RuntimeKey {
-    comm: [char; 16],
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum LoadProgramError {
     #[error("hash error")]
@@ -185,7 +182,7 @@ pub fn init_runtimes(map: &mut libbpf_rs::Map) -> Result<(), LoadProgramError> {
     let val: [u8; 4] = [0, 0, 0, 0];
 
     for runtime in runtimes.iter() {
-        let key = RuntimeKey {
+        let key = bindings::runtime_key {
             comm: runtime.chars().collect::<Vec<char>>().as_slice().try_into()?,
         };
         let key_b = unsafe { plain::as_bytes(&key) };
@@ -315,16 +312,6 @@ pub fn skel_reused_maps<'a>() -> Result<LockcSkel<'a>, SkelReusedMapsError> {
     let skel = open_skel.load()?;
 
     Ok(skel)
-}
-
-#[repr(C, packed)]
-struct ContainerKey {
-    container_id: [char; 1024],
-}
-
-#[repr(C, packed)]
-struct Container {
-    container_policy_level: ContainerPolicyLevel,
 }
 
 #[derive(thiserror::Error, Debug)]
