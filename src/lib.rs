@@ -140,6 +140,9 @@ pub fn load_programs(path_base_ts: path::PathBuf) -> Result<(), LoadProgramError
     let path_program_syslog = path_base_ts.join("prog_syslog_audit");
     skel.progs_mut().syslog_audit().pin(path_program_syslog)?;
 
+    let path_program_mount = path_base_ts.join("prog_mount_audit");
+    skel.progs_mut().mount_audit().pin(path_program_mount)?;
+
     let mut link_fork = skel.progs_mut().sched_process_fork().attach()?;
     let path_link_fork = path_base_ts.join("link_fork");
     link_fork.pin(path_link_fork)?;
@@ -151,6 +154,10 @@ pub fn load_programs(path_base_ts: path::PathBuf) -> Result<(), LoadProgramError
     let mut link_syslog = skel.progs_mut().syslog_audit().attach_lsm()?;
     let path_link_syslog = path_base_ts.join("link_syslog_audit");
     link_syslog.pin(path_link_syslog)?;
+
+    let mut link_mount = skel.progs_mut().mount_audit().attach_lsm()?;
+    let path_link_mount = path_base_ts.join("link_mount_audit");
+    link_mount.pin(path_link_mount)?;
 
     Ok(())
 }
