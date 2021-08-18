@@ -8,6 +8,9 @@
 #endif
 
 #define EPERM 1
+#define ENAMETOOLONG 36
+
+#define PATH_MAX 4096
 #define TASK_COMM_LEN 16
 /*
  * Max configurable PID limit (for x86_64, for the other architectures it's less
@@ -65,6 +68,13 @@ struct {
 	__type(key, pid_t);
 	__type(value, struct process);
 } processes SEC(".maps");
+
+struct {
+	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+	__uint(max_entries, PATH_MAX);
+	__type(key, u32);
+	__type(value, char);
+} path_buffer SEC(".maps");
 
 /*
  * Utils
@@ -142,12 +152,14 @@ static __always_inline int handle_new_process(struct task_struct *parent,
 	bpf_printk("found parent containerized process: %d\n", ppid);
 	bpf_printk("comm: %s\n", BPF_CORE_READ(child, comm));
 
-	pid_t container_id = parent_lookup->container_id;
-	u32 *container_lookup = bpf_map_lookup_elem(&containers, &container_id);
+	u32 container_id = parent_lookup->container_id;
+	struct container *container_lookup = bpf_map_lookup_elem(&containers,
+								 &container_id);
 	if (!container_lookup) {
 		/* Shouldn't happen */
 		bpf_printk("error: handle_new_process: cound not find a "
-			   "container for a registered process %d, container id: %d\n",
+			   "container for a registered process %d, "
+			   "container id: %d\n",
 			   pid, container_id);
 		return -EPERM;
 	}
@@ -186,7 +198,8 @@ static __always_inline enum container_policy_level get_policy_level(pid_t pid)
 		return POLICY_LEVEL_NOT_FOUND;
 	}
 
-	struct container *c = bpf_map_lookup_elem(&containers, &p->container_id);
+	struct container *c = bpf_map_lookup_elem(&containers,
+						  &p->container_id);
 	if (!c) {
 		/* Shouldn't happen */
 		bpf_printk("error: get_policy_level: could not found a "
@@ -220,7 +233,8 @@ int sched_process_fork(struct bpf_raw_tracepoint_args *args)
 	struct task_struct *child = (struct task_struct *)args->args[1];
 	if (parent == NULL || child == NULL) {
 		/* Shouldn't happen */
-		bpf_printk("error: sched_process_fork: parent or child is NULL\n");
+		bpf_printk("error: sched_process_fork: parent or child is "
+			   "NULL\n");
 		return -EPERM;
 	}
 
@@ -285,10 +299,120 @@ int BPF_PROG(syslog_audit, int type, int ret_prev)
 
 out:
 	/* Handle results of previous programs */
-	if (ret_prev != 0) {
-		bpf_printk("syslog previous result\n");
+	if (ret_prev != 0)
 		return ret_prev;
+	return ret;
+}
+
+static __always_inline int prepend_name(size_t *buf_size,
+					const struct qstr *dname)
+{
+	const unsigned char *name = BPF_CORE_READ(dname, name);
+	u32 len = BPF_CORE_READ(dname, len);
+	u32 buf_key;
+	int err = 0;
+	char p;
+
+	*buf_size -= len +1;
+	if (*buf_size < 0)
+		return -ENAMETOOLONG;
+
+	buf_key = (u32) *buf_size;
+	p = '/';
+	err = bpf_map_update_elem(&path_buffer, &buf_key, &p, 0);
+	if (err < 0)
+		return err;
+
+	while (len--) {
+		unsigned char c = *name++;
+		if (!c)
+			break;
+		buf_key++;
+		p = (char) c;
+		err = bpf_map_update_elem(&path_buffer, &buf_key, &p, 0);
+		if (err < 0)
+			return err;
 	}
+
+	return 0;
+}
+
+#define ERR_PTR(err)    ((void *)((long)(err)))
+#define IS_ERR(ptr)     ((unsigned long)(ptr) > (unsigned long)(-1000))
+
+static __always_inline int dentry_full_path(struct dentry *dentry)
+{
+	size_t buf_size = PATH_MAX;
+	struct dentry *parent;
+	int err = 0;
+
+	while (1) {
+		parent = BPF_CORE_READ(dentry, d_parent);
+
+		/* Stop walking if it's a root directory */
+		if (dentry == parent)
+			break;
+
+		err = prepend_name(&buf_size, &dentry->d_name);
+		if (err)
+			break;
+	}
+
+	return err;
+}
+
+static __always_inline int print_full_path()
+{
+	char *c;
+	u32 i;
+
+	bpf_printk("path: ");
+
+	for (i = 0; i < PATH_MAX; i++) {
+		c = bpf_map_lookup_elem(&path_buffer, &i);
+		if (c == NULL) {
+			bpf_printk("error: print_full_path: could not get the "
+				   "%d character from the path buffer\n");
+			return -1;
+		}
+
+		if (*c == '\0')
+			break;
+
+		bpf_printk("%c", *c);
+	}
+
+	bpf_printk("\n");
+
+	return 0;
+}
+
+SEC("lsm/sb_mount")
+int BPF_PROG(mount_audit, const char *dev_name, const struct path *path,
+	     const char *type, unsigned long flags, void *data, int ret_prev)
+{
+	int ret = 0;
+
+	struct dentry *d = BPF_CORE_READ(path, dentry);
+	if (d == NULL) {
+		/* Shouldn't happen */
+		bpf_printk("error: mount_audit: dentry is NULL\n");
+		ret = -EPERM;
+		goto out;
+	}
+
+	if (dentry_full_path(d) < 0) {
+		bpf_printk("error: mount_audit: could not get the mount "
+			   "path\n");
+		ret = -EPERM;
+		goto out;
+	}
+	print_full_path();
+
+out:
+	/* Handle results of previous programs */
+	if (ret_prev != 0)
+		return ret_prev;
 	return ret;
 }
 
