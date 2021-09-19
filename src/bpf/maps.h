@@ -49,7 +49,7 @@ struct {
 	__uint(max_entries, PATH_MAX_LIMIT);
 	__type(key, u32);
 	__type(value, struct allowed_path);
-} allowed_paths_restricted SEC(".maps");
+} allowed_paths_mount_restricted SEC(".maps");
 
 /*
  * allowed_paths_baseline - BPF map which contains the source path prefixes
@@ -62,4 +62,4 @@ struct {
 	__uint(max_entries, PATH_MAX_LIMIT);
 	__type(key, u32);
 	__type(value, struct allowed_path);
-} allowed_paths_baseline SEC(".maps");
+} allowed_paths_mount_baseline SEC(".maps");

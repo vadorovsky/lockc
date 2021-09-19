@@ -354,7 +354,7 @@ int BPF_PROG(mount_audit, const char *dev_name, const struct path *path,
 	case POLICY_LEVEL_NOT_FOUND:
 		goto out;
 	case POLICY_LEVEL_RESTRICTED:
-		bpf_for_each_map_elem(&allowed_paths_restricted,
+		bpf_for_each_map_elem(&allowed_paths_mount_restricted,
 				      check_allowed_paths,
 				      &cb, 0);
 		if (cb.found) {
@@ -365,7 +365,7 @@ int BPF_PROG(mount_audit, const char *dev_name, const struct path *path,
 		ret = -EPERM;
 		goto out;
 	case POLICY_LEVEL_BASELINE:
-		bpf_for_each_map_elem(&allowed_paths_baseline,
+		bpf_for_each_map_elem(&allowed_paths_mount_baseline,
 				      check_allowed_paths,
 				      &cb, 0);
 		if (cb.found) {
