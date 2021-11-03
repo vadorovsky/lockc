@@ -225,6 +225,7 @@ allowed_paths_access_restricted = [
     "/home",
     "/lib",
     "/proc",
+    "/run",
     "/sys/fs/cgroup",
     "/tmp",
     "/usr",
@@ -244,6 +245,7 @@ allowed_paths_access_baseline = [
     "/home",
     "/lib",
     "/proc",
+    "/run",
     "/sys/fs/cgroup",
     "/tmp",
     "/usr",
@@ -252,9 +254,9 @@ allowed_paths_access_baseline = [
 
 denied_paths_access_restricted = [
     "/proc/acpi",
+    "/proc/sys",
 ]
 
 denied_paths_access_baseline = [
     "/proc/acpi",
-    "/proc/sys",
 ]

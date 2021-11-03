@@ -20,8 +20,12 @@ fn main() -> anyhow::Result<()> {
 
     let path_base_ts = path_base.join(&dirname);
 
-    lockc::load_programs(path_base_ts)?;
+    // lockc::load_programs(path_base_ts)?;
+    let _skel = lockc::BpfContext::new(path_base_ts)?;
     lockc::cleanup(path_base, &dirname)?;
+
+    // skel.work_loop()?;
+    lockc::runc::RuncWatcher::new()?.work_loop()?;
 
     Ok(())
 }

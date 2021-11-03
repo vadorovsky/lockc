@@ -120,6 +120,7 @@ static DIR_DEV_ZERO: &str = "/dev/zero";
 static DIR_ETC: &str = "/etc";
 static DIR_LIB: &str = "/lib";
 static DIR_PROC: &str = "/proc";
+static DIR_RUN: &str = "/run";
 static DIR_CGROUP: &str = "/sys/fs/cgroup";
 static DIR_TMP: &str = "/tmp";
 static DIR_USR: &str = "/usr";
@@ -292,6 +293,7 @@ impl Settings {
                 DIR_HOME.to_string(),
                 DIR_LIB.to_string(),
                 DIR_PROC.to_string(),
+                DIR_RUN.to_string(),
                 DIR_CGROUP.to_string(),
                 DIR_TMP.to_string(),
                 DIR_USR.to_string(),
@@ -313,6 +315,7 @@ impl Settings {
                 DIR_HOME.to_string(),
                 DIR_LIB.to_string(),
                 DIR_PROC.to_string(),
+                DIR_RUN.to_string(),
                 DIR_CGROUP.to_string(),
                 DIR_TMP.to_string(),
                 DIR_USR.to_string(),
@@ -321,11 +324,11 @@ impl Settings {
         )?;
         s.set(
             "denied_paths_access_restricted",
-            vec![DIR_PROC_ACPI.to_string()],
+            vec![DIR_PROC_ACPI.to_string(), DIR_PROC_SYS.to_string()],
         )?;
         s.set(
             "denied_paths_access_baseline",
-            vec![DIR_PROC_ACPI.to_string(), DIR_PROC_SYS.to_string()],
+            vec![DIR_PROC_ACPI.to_string()],
         )?;
 
         s.merge(config::File::with_name("/etc/lockc/lockc.toml").required(false))?;
