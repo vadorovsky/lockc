@@ -132,7 +132,8 @@ if ! ssh $sshopts $user@$host 'sudo needs-restarting -r'; then
     while ! ssh $sshopts $user@$host 'sudo needs-restarting -r'; do
         sleep $delay
         delay=$((delay+1))
-        [ $delay -gt 120 ] && exit 1
+        [ $delay -gt 60 ] && exit 1
+        ssh $sshopts $user@$host 'sudo needs-restarting -r'
     done
 fi
 EOT

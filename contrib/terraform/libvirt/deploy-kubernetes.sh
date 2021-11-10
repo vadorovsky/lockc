@@ -5,9 +5,8 @@ cmd()   { log "$@" ; }
 info()  { log "[ INFO ] $@" ; }
 error() { (>&2 echo -e "[ ERROR ] $@") ;}
 
-if [ -z "${TR_MASTER_IPS}" ] || \
-   [ -z "${TR_WORKER_IPS}" ] || [ -z "${TR_USERNAME}" ]; then
-    error '$TR_MASTER_IPS $TR_WORKER_IPS $TR_USERNAME must be specified'
+if [ -z "${TR_MASTER_IPS}" ] || [ -z "${TR_USERNAME}" ]; then
+    error '$TR_MASTER_IPS $TR_USERNAME must be specified'
     exit 1
 fi
 
