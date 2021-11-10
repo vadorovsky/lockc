@@ -19,7 +19,7 @@ i=0
 for MASTER in $TR_MASTER_IPS; do
     cmd "ssh -o 'StrictHostKeyChecking no' -l ${TR_USERNAME} ${MASTER} /bin/bash <<EOF"
     cmd ""
-    
+
     if [ $i -eq "0" ]; then
         cmd "  sudo kubeadm init --cri-socket /run/containerd/containerd.sock --control-plane-endpoint ${MASTER}:6443 | tee kubeadm-init.log"
         cmd ""

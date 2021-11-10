@@ -3,7 +3,7 @@ resource "null_resource" "deploy_kubernetes" {
     null_resource.control_plane_reboot,
     null_resource.worker_reboot
   ]
-  count = 1
+  count = var.enable_k8s_containerd ? 1 : 0
 
   provisioner "local-exec" {
     environment = {

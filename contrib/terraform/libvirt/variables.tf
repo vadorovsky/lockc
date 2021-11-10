@@ -85,6 +85,18 @@ variable "packages" {
   ]
 }
 
+variable "enable_docker" {
+  description = "Enable Docker support (as a non-clustered container engine)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_k8s_containerd" {
+  description = "Enable Kubernetes with containerd CRI"
+  type        = bool
+  default     = true
+}
+
 variable "username" {
   description = "Default user for the cluster nodes"
   default     = "opensuse"

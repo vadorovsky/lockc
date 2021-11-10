@@ -106,6 +106,11 @@ resource "null_resource" "control_plane_provision" {
   }
 
   provisioner "remote-exec" {
+    environment = {
+      ENABLE_DOCKER         = var.enable_docker ? "true" : "false"
+      ENABLE_K8S_CONTAINERD = var.enable_k8s_containerd ? "true" : "false"
+    }
+
     script = "provision.sh"
   }
 }

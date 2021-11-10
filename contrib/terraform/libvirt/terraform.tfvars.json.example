@@ -28,6 +28,8 @@
     "strace",
     "tmux"
   ],
+  "enable_docker": false,
+  "enable_k8s_containerd": true,
   "control_planes": 1,
   "control_plane_memory": 2048,
   "control_plane_vcpu": 2,
