@@ -20,6 +20,6 @@ By default, with the **baseline** policy level, this is a good example of
 not allowed behavior:
 
 ```bash
-# docker run -ti -v /:/rootfs --rm registry.opensuse.org/opensuse/toolbox:latest
-Error: container create failed (no logs from conmon): EOF
+# docker run --rm -it -v /:/rootfs registry.opensuse.org/opensuse/toolbox:latest
+docker: Error response from daemon: OCI runtime create failed: container_linux.go:380: starting container process caused: process_linux.go:545: container init caused: rootfs_linux.go:76: mounting "/" to rootfs at "/rootfs" caused: mount through procfd: operation not permitted: unknown.
 ```

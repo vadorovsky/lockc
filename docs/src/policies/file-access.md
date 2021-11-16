@@ -60,3 +60,10 @@ By default, the contents of lists are:
   * deny list
     * */proc/acpi*
     * */proc/sys*
+
+By default, with the **baseline** policy level, this is a good exampole of not
+allowed behavior:
+
+```bash
+
+```
