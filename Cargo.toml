@@ -1,6 +1,9 @@
 [workspace]
 members = [
     "lockc",
-    "lockc-uprobes",
+    "lockc-common",
     "xtask",
 ]
+
+[patch.crates-io]
+aya = { git = "https://github.com/aya-rs/aya", branch = "main" }

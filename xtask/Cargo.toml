@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0"
+aya-gen = { git = "http://github.com/aya-rs/aya", branch = "main" }
+eyre = "0.6.5"
 flate2 = "1.0"
 fs_extra = "1.2"
 scopeguard = "1.1"

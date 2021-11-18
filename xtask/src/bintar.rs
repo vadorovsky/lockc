@@ -1,6 +1,6 @@
 use std::{fs::File, path::Path};
 
-use anyhow::Result;
+use eyre::Result;
 use flate2::{write::GzEncoder, Compression};
 use scopeguard::guard;
 use structopt::StructOpt;

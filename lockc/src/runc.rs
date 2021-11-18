@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io, os::unix::fs::PermissionsExt, path::Path, string::String};
+use std::{collections, fs, io, os::unix::fs::PermissionsExt, path::Path, string::String};
 
 use fanotify::{
     high_level::{Event, Fanotify, FanotifyMode, FanotifyResponse},
@@ -7,22 +7,21 @@ use fanotify::{
 use k8s_openapi::api::core::v1;
 use log::{debug, error};
 use nix::poll::{poll, PollFd, PollFlags};
-use procfs::{process::Process, ProcError};
+use procfs::{process, ProcError};
 use scopeguard::defer;
 use serde::Deserialize;
 use serde_json::Value;
 use thiserror::Error;
-use tokio::runtime::Builder;
+use tokio::{
+    runtime::Builder,
+    sync::{mpsc, oneshot},
+};
 
 use crate::{
-    bpfstructs::{
-        container_policy_level, container_policy_level_POLICY_LEVEL_BASELINE,
-        container_policy_level_POLICY_LEVEL_PRIVILEGED,
-        container_policy_level_POLICY_LEVEL_RESTRICTED,
-    },
-    hash, HashError,
+    communication::EbpfCommand,
+    utils::{hash, HashError},
 };
-use lockc_uprobes::{add_container, add_process, delete_container};
+use lockc_common::ContainerPolicyLevel;
 
 // static LABEL_NAMESPACE: &str = "io.kubernetes.pod.namespace";
 static LABEL_POLICY_ENFORCE: &str = "pod-security.kubernetes.io/enforce";
@@ -43,7 +42,7 @@ enum KubernetesContainerType {
     Unknown,
 }
 
-fn kubernetes_type(annotations: HashMap<String, String>) -> KubernetesContainerType {
+fn kubernetes_type(annotations: collections::HashMap<String, String>) -> KubernetesContainerType {
     if annotations.contains_key(ANNOTATION_CONTAINERD_LOG_DIRECTORY) {
         return KubernetesContainerType::ContainerdMain;
     } else if annotations.contains_key(ANNOTATION_CONTAINERD_SANDBOX_ID) {
@@ -72,7 +71,7 @@ struct Mount {
 #[serde(rename_all = "camelCase")]
 struct ContainerConfig {
     mounts: Vec<Mount>,
-    annotations: Option<HashMap<String, String>>,
+    annotations: Option<collections::HashMap<String, String>>,
 }
 
 #[derive(Error, Debug)]
@@ -172,13 +171,13 @@ fn container_type_data<P: AsRef<std::path::Path>>(
 
 /// Finds the policy for the given Kubernetes namespace. If none, the baseline
 /// policy is returned. Otherwise checks the Kubernetes namespace labels.
-async fn policy_kubernetes(namespace: String) -> Result<container_policy_level, kube::Error> {
+async fn policy_kubernetes(namespace: String) -> Result<ContainerPolicyLevel, kube::Error> {
     // Apply the privileged policy for kube-system containers immediately.
     // Otherwise the core k8s components (apiserver, scheduler) won't be able
     // to run.
     // If container has no k8s namespace, apply the baseline policy.
     if namespace.as_str() == "kube-system" {
-        return Ok(container_policy_level_POLICY_LEVEL_PRIVILEGED);
+        return Ok(ContainerPolicyLevel::Privileged);
     }
 
     let client = kube::Client::try_default().await?;
@@ -189,14 +188,14 @@ async fn policy_kubernetes(namespace: String) -> Result<container_policy_level, 
     match namespace.metadata.labels {
         Some(v) => match v.get(LABEL_POLICY_ENFORCE) {
             Some(v) => match v.as_str() {
-                "restricted" => Ok(container_policy_level_POLICY_LEVEL_RESTRICTED),
-                "baseline" => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
-                "privileged" => Ok(container_policy_level_POLICY_LEVEL_PRIVILEGED),
-                _ => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
+                "restricted" => Ok(ContainerPolicyLevel::Restricted),
+                "baseline" => Ok(ContainerPolicyLevel::Baseline),
+                "privileged" => Ok(ContainerPolicyLevel::Privileged),
+                _ => Ok(ContainerPolicyLevel::Baseline),
             },
-            None => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
+            None => Ok(ContainerPolicyLevel::Baseline),
         },
-        None => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
+        None => Ok(ContainerPolicyLevel::Baseline),
     }
 }
 
@@ -213,9 +212,9 @@ pub enum PolicyKubernetesSyncError {
 /// poll(2) syscall, which is definitely not meant for multithreaded code.
 fn policy_kubernetes_sync(
     namespace: String,
-) -> Result<container_policy_level, PolicyKubernetesSyncError> {
+) -> Result<ContainerPolicyLevel, PolicyKubernetesSyncError> {
     match Builder::new_current_thread()
-        .enable_all()
+        // .enable_all()
         .build()?
         .block_on(policy_kubernetes(namespace))
     {
@@ -230,9 +229,7 @@ struct Mounts {
     mounts: Vec<Mount>,
 }
 
-fn policy_docker<P: AsRef<Path>>(
-    docker_bundle: P,
-) -> Result<container_policy_level, ContainerError> {
+fn policy_docker<P: AsRef<Path>>(docker_bundle: P) -> Result<ContainerPolicyLevel, ContainerError> {
     let config_path = docker_bundle.as_ref();
     let f = std::fs::File::open(config_path)?;
     let r = std::io::BufReader::new(f);
@@ -243,12 +240,12 @@ fn policy_docker<P: AsRef<Path>>(
 
     match x {
         Some(x) => match x {
-            "restricted" => Ok(container_policy_level_POLICY_LEVEL_RESTRICTED),
-            "baseline" => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
-            "privileged" => Ok(container_policy_level_POLICY_LEVEL_PRIVILEGED),
-            _ => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
+            "restricted" => Ok(ContainerPolicyLevel::Restricted),
+            "baseline" => Ok(ContainerPolicyLevel::Baseline),
+            "privileged" => Ok(ContainerPolicyLevel::Privileged),
+            _ => Ok(ContainerPolicyLevel::Baseline),
         },
-        None => Ok(container_policy_level_POLICY_LEVEL_BASELINE),
+        None => Ok(ContainerPolicyLevel::Baseline),
     }
 }
 
@@ -296,6 +293,9 @@ enum ContainerAction {
 
 #[derive(Error, Debug)]
 pub enum UprobeError {
+    #[error(transparent)]
+    Hash(#[from] HashError),
+
     #[error("failed to call into uprobe, BPF programs are most likely not running")]
     Call,
 
@@ -316,6 +316,8 @@ fn check_uprobe_ret(ret: i32) -> Result<(), UprobeError> {
 }
 
 pub struct RuncWatcher {
+    bootstrap_rx: oneshot::Receiver<()>,
+    ebpf_tx: mpsc::Sender<EbpfCommand>,
     fd: Fanotify,
 }
 
@@ -326,6 +328,9 @@ pub enum HandleRuncEventError {
 
     #[error(transparent)]
     Errno(#[from] nix::errno::Errno),
+
+    #[error(transparent)]
+    TokioTryRecv(#[from] oneshot::error::TryRecvError),
 
     #[error(transparent)]
     Proc(#[from] ProcError),
@@ -350,7 +355,10 @@ pub enum HandleRuncEventError {
 }
 
 impl RuncWatcher {
-    pub fn new() -> Result<Self, io::Error> {
+    pub fn new(
+        bootstrap_rx: oneshot::Receiver<()>,
+        ebpf_tx: mpsc::Sender<EbpfCommand>,
+    ) -> Result<Self, io::Error> {
         let runc_paths = vec![
             "/usr/bin/runc",
             "/usr/sbin/runc",
@@ -389,13 +397,102 @@ impl RuncWatcher {
             }
         }
 
-        Ok(RuncWatcher { fd })
+        Ok(RuncWatcher {
+            bootstrap_rx,
+            ebpf_tx,
+            fd,
+        })
+    }
+
+    async fn add_container(
+        &self,
+        container_id: String,
+        pid: i32,
+        policy_level: ContainerPolicyLevel,
+    ) -> Result<(), eyre::Error> {
+        let (responder_tx, responder_rx) = oneshot::channel();
+
+        self.ebpf_tx
+            .send(EbpfCommand::AddContainer {
+                container_id,
+                pid,
+                policy_level,
+                responder_tx,
+            })
+            .await?;
+        responder_rx.await?;
+
+        Ok(())
+    }
+
+    fn add_container_sync(
+        &self,
+        container_id: String,
+        pid: i32,
+        policy_level: ContainerPolicyLevel,
+    ) -> Result<(), eyre::Error> {
+        debug!("adding container {}", container_id);
+
+        Builder::new_current_thread()
+            .build()?
+            .block_on(self.add_container(container_id, pid, policy_level))?;
+
+        Ok(())
+    }
+
+    async fn delete_container(&self, container_id: String) -> Result<(), eyre::Error> {
+        let (responder_tx, responder_rx) = oneshot::channel();
+
+        self.ebpf_tx
+            .send(EbpfCommand::DeleteContainer {
+                container_id,
+                responder_tx,
+            })
+            .await?;
+        responder_rx.await?;
+
+        Ok(())
+    }
+
+    fn delete_container_sync(&self, container_id: String) -> Result<(), eyre::Error> {
+        debug!("deleting container {}", container_id);
+
+        Builder::new_current_thread()
+            .build()?
+            .block_on(self.delete_container(container_id))?;
+
+        Ok(())
+    }
+
+    async fn add_process(&self, container_id: String, pid: i32) -> Result<(), eyre::Error> {
+        let (responder_tx, responder_rx) = oneshot::channel();
+
+        self.ebpf_tx
+            .send(EbpfCommand::AddProcess {
+                container_id,
+                pid,
+                responder_tx,
+            })
+            .await?;
+        responder_rx.await?;
+
+        Ok(())
+    }
+
+    fn add_process_sync(&self, container_id: String, pid: i32) -> Result<(), eyre::Error> {
+        debug!("adding process {} (contaner: {})", pid, container_id);
+
+        Builder::new_current_thread()
+            .build()?
+            .block_on(self.add_process(container_id, pid))?;
+
+        Ok(())
     }
 
     fn handle_containerd_shim_event(
         &self,
-        containerd_shim_process: Process,
-    ) -> Result<(), HandleRuncEventError> {
+        containerd_shim_process: process::Process,
+    ) -> Result<(), eyre::Error> {
         let mut opt_parsing_action = ShimOptParsingAction::NoPositional;
         let mut container_action = ShimContainerAction::Other;
 
@@ -436,20 +533,17 @@ impl RuncWatcher {
         match container_action {
             ShimContainerAction::Other => {}
             ShimContainerAction::Delete => {
-                let container_key =
-                    hash(&container_id_o.ok_or(HandleRuncEventError::ContainerID)?)?;
-                debug!("deleting container with key {}", container_key);
+                let container_id = container_id_o.ok_or(HandleRuncEventError::ContainerID)?;
+                debug!("deleting container with id {}", container_id);
 
-                let mut ret: i32 = -libc::EAGAIN;
-                delete_container(&mut ret as *mut i32, container_key);
-                check_uprobe_ret(ret)?;
+                self.delete_container_sync(container_id)?;
             }
         }
 
         Ok(())
     }
 
-    fn handle_runc_event(&self, runc_process: Process) -> Result<(), HandleRuncEventError> {
+    fn handle_runc_event(&self, runc_process: process::Process) -> Result<(), eyre::Error> {
         let mut opt_parsing_action = OptParsingAction::NoPositional;
         let mut arg_parsing_action = ArgParsingAction::None;
         let mut container_action = ContainerAction::Other;
@@ -530,12 +624,9 @@ impl RuncWatcher {
         match container_action {
             ContainerAction::Other => {
                 debug!("other container action");
-                if let Some(v) = container_id_o {
-                    let container_key = hash(&v)?;
-
-                    let mut ret: i32 = -libc::EAGAIN;
-                    add_process(&mut ret as *mut i32, container_key, runc_process.pid);
-                    check_uprobe_ret(ret)?;
+                if let Some(container_id) = container_id_o {
+                    // self.add_process(bpf, container_id, runc_process.pid as i32)?;
+                    self.add_process_sync(container_id, runc_process.pid as i32)?;
                 }
             }
             ContainerAction::Create => {
@@ -552,24 +643,17 @@ impl RuncWatcher {
 
                 // let policy;
                 let (container_type, container_data) = container_type_data(container_bundle)?;
-                let policy: container_policy_level = match container_type {
+                let policy: ContainerPolicyLevel = match container_type {
                     ContainerType::Docker => {
                         policy_docker(container_data.ok_or(HandleRuncEventError::ContainerData)?)?
                     }
                     ContainerType::KubernetesContainerd => policy_kubernetes_sync(
                         container_data.ok_or(HandleRuncEventError::ContainerData)?,
                     )?,
-                    ContainerType::Unknown => container_policy_level_POLICY_LEVEL_BASELINE,
+                    ContainerType::Unknown => ContainerPolicyLevel::Baseline,
                 };
 
-                let mut ret: i32 = -libc::EAGAIN;
-                add_container(
-                    &mut ret as *mut i32,
-                    container_key,
-                    runc_process.pid,
-                    policy,
-                );
-                check_uprobe_ret(ret)?;
+                self.add_container_sync(container_id, runc_process.pid as i32, policy)?;
             }
             ContainerAction::Delete => {
                 let container_id = container_id_o.ok_or(HandleRuncEventError::ContainerID)?;
@@ -579,22 +663,20 @@ impl RuncWatcher {
                     container_id, container_key
                 );
 
-                let mut ret: i32 = -libc::EAGAIN;
-                delete_container(&mut ret as *mut i32, container_key);
-                check_uprobe_ret(ret)?;
+                self.delete_container_sync(container_id)?;
             }
         }
 
         Ok(())
     }
 
-    fn handle_event(&self, event: Event) -> Result<(), HandleRuncEventError> {
+    fn handle_event(&self, event: Event) -> Result<(), eyre::Error> {
         // Let the process execute again
         defer!(self.fd.send_response(event.fd, FanotifyResponse::Allow));
 
         debug!("received fanotify event: {:#?}", event);
 
-        let p = Process::new(event.pid)?;
+        let p = process::Process::new(event.pid)?;
 
         // Usually fanotify receives two notifications about executing runc:
         // 1) from containerd-shim (or similar)
@@ -616,7 +698,25 @@ impl RuncWatcher {
         Ok(())
     }
 
-    pub fn work_loop(&self) -> Result<(), HandleRuncEventError> {
+    pub fn work_loop(&mut self) -> Result<(), HandleRuncEventError> {
+        // Wait for the bootstrap request from the main, asynchronous part of
+        // lockc.
+        loop {
+            // debug!("wait for bootstrap rq");
+            match self.bootstrap_rx.try_recv() {
+                Ok(_) => {
+                    // debug!("bootstraping");
+                    break;
+                }
+                Err(oneshot::error::TryRecvError::Empty) => {
+                    // debug!("keep waiting");
+                    // Keep waiting.
+                }
+                Err(e) => return Err(HandleRuncEventError::from(e)),
+            }
+        }
+
+        debug!("starting work loop");
         let mut fds = [PollFd::new(self.fd.as_raw_fd(), PollFlags::POLLIN)];
         loop {
             let poll_num = poll(&mut fds, -1)?;

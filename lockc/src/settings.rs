@@ -1,5 +1,3 @@
-use crate::bpfstructs;
-
 /// Path to Pseudo-Terminal Device, needed for -it option in container
 /// runtimes.
 static DIR_PTS: &str = "/dev/pts";
@@ -214,7 +212,6 @@ static DIR_PROC_SYS: &str = "/proc/sys";
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Settings {
-    pub runtimes: Vec<String>,
     /// Paths which are allowed in restricted policy. These are only paths
     /// which are used by default by container runtimes, not paths mounted
     /// with the -v option.
@@ -229,30 +226,10 @@ pub struct Settings {
     pub denied_paths_access_baseline: Vec<String>,
 }
 
-fn trim_task_comm_len(mut s: std::string::String) -> std::string::String {
-    s.truncate((bpfstructs::TASK_COMM_LEN - 1).try_into().unwrap());
-    s
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_trim_task_comm_len() {
-        assert_eq!(
-            trim_task_comm_len("abcdefgijklmnopqrstuvwxyz".to_string()),
-            "abcdefgijklmnop".to_string()
-        );
-        assert_eq!(trim_task_comm_len("foo".to_string()), "foo".to_string());
-    }
-}
-
 impl Settings {
     pub fn new() -> Result<Self, config::ConfigError> {
         let mut s = config::Config::default();
 
-        s.set("runtimes", vec![trim_task_comm_len("runc".to_string())])?;
         s.set(
             "allowed_paths_mount_restricted",
             vec![
@@ -481,7 +458,11 @@ impl Settings {
         )?;
         s.set(
             "denied_paths_access_restricted",
-            vec![DIR_PROC_ACPI.to_string(), DIR_PROC_SYS.to_string(), DIR_K8S_SECRETS.to_string()],
+            vec![
+                DIR_PROC_ACPI.to_string(),
+                DIR_PROC_SYS.to_string(),
+                DIR_K8S_SECRETS.to_string(),
+            ],
         )?;
         s.set(
             "denied_paths_access_baseline",

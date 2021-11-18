@@ -364,7 +364,7 @@ impl Installer {
         Ok(())
     }
 
-    pub(crate) fn do_install(&self) -> anyhow::Result<()> {
+    pub(crate) fn do_install(&self) -> eyre::Result<()> {
         self.install_binaries()?;
         self.install_config()?;
         self.install_units()?;
