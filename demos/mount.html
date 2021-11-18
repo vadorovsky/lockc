@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Base image - lockc Documentation</title>
+        <title>Mount - lockc Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">4.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html" class="active"><strong aria-hidden="true">4.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">4.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.3.</strong> Use libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.4.</strong> Use OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">4.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html"><strong aria-hidden="true">4.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">4.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.3.</strong> Use libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.4.</strong> Use OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html" class="active"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -142,25 +142,30 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h4 id="building-the-base-image"><a class="header" href="#building-the-base-image">Building the base image</a></h4>
-<p>The first step is to build the VM image.</p>
-<pre><code class="language-bash">cd contrib/guestfs
-./build
-</code></pre>
-<p>If the script ran successfully, <code>lockc-base.qcow2</code> file should be present.
-It cointains the base VM image which will be used by Terraform.</p>
+                        <h2 id="mount-policies"><a class="header" href="#mount-policies">Mount policies</a></h2>
+<h3 id="kubernetes"><a class="header" href="#kubernetes">Kubernetes</a></h3>
+<p>The following demo shows mount policies being enforced on Kubernetes pods.</p>
+<p>YAML files can be found <a href="https://github.com/rancher-sandbox/lockc/tree/main/examples/kubernetes">here</a>.</p>
+<p>The policy violations in <a href="https://github.com/rancher-sandbox/lockc/tree/main/examples/kubernetes/deployments-should-fail.yaml">deployments-should-fail.yaml</a>
+file are:</p>
+<ul>
+<li><em>nginx-restricted-fail</em> deployment trying to make a host mount while having a
+<strong>restricted</strong> policy</li>
+<li><em>bpf-default-fail</em> and <em>bpf-baseline-fail</em> deployment trying to mount
+<code>/sys/fs/bpf</code> while having a <strong>baseline</strong> policy</li>
+<li><em>bpf-restricted-fail</em> trying to mount <code>/sys/fs/bpf</code> while having a
+<strong>restricted</strong> policy.</li>
+</ul>
+<p><a href="https://asciinema.org/a/sUxMMB5BKkJzlF1jP6k8Bxab3"><img src="https://asciinema.org/a/sUxMMB5BKkJzlF1jP6k8Bxab3.svg" alt="asciicast" /></a></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../terraform/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../demos/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../terraform/custom-kernel.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -168,13 +173,10 @@ It cointains the base VM image which will be used by Terraform.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../terraform/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../demos/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../terraform/custom-kernel.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>

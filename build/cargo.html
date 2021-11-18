@@ -1,0 +1,307 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Cargo - lockc Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="**lockc** is open source software for providing MAC (Mandatory Access Control) implemented in Rust">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html" class="active"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">4.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html"><strong aria-hidden="true">4.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">4.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.3.</strong> Use libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.4.</strong> Use OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">lockc Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h3 id="cargo"><a class="header" href="#cargo">Cargo</a></h3>
+<p>If you are comfortable with installing all dependencies on your host system,
+you need to install the following software:</p>
+<ul>
+<li>LLVM</li>
+<li>libbpf, bpftool</li>
+<li>Rust, Cargo</li>
+</ul>
+<h4 id="llvm"><a class="header" href="#llvm">LLVM</a></h4>
+<p>We need a recent version of LLVM (at least 12) to build BPF programs.</p>
+<p>LLVM has an official <a href="https://apt.llvm.org/">apt repository</a> with recent
+stable versions.</p>
+<p>Distributions with up to date software repositories like Arch, Fedora, openSUSE
+Tumbleweed are shipping recent versions of LLVM.</p>
+<p>In more stable and not up to date distributions (CentOS, openSUSE Leap, RHEL,
+SLES), using some kind of development repository might be an option. For
+example, openSUSE Leap users can use the following devel repo:</p>
+<pre><code class="language-bash">zypper ar -r -p 90 https://download.opensuse.org/repositories/devel:/tools:/compiler/openSUSE_Leap_15.3/devel:tools:compiler.repo
+zypper ref
+zypper up --allow-vendor-change
+zypper in clang llvm
+</code></pre>
+<p>If there is no packaging of recent LLVM versions for your distribution, there
+is also an option to <a href="https://releases.llvm.org/download.html">download binaries</a>.</p>
+<h4 id="libbpf-bpftool"><a class="header" href="#libbpf-bpftool">libbpf, bpftool</a></h4>
+<p>libbpf is the official C library for writing, loading and managing BPF programs
+and entities. bpftool is the official CLI for interacting with BPF subsystem.</p>
+<p>Distributions with up to date software (Arch, Fedora, openSUSE Tumbleweed)
+usually provide packaging for both.</p>
+<p>Especially for more stable and less up to date distributions, but even
+generally, we would recommend to build both dependencies from source. Both of
+them are the part of the Linux kernel source.</p>
+<p>The easiest way to get the kernel source is to download a tarball available on
+<a href="https://www.kernel.org/">kernel.org</a>. Then build and install tools from it
+(the version might vary from this snippet):</p>
+<pre><code class="language-bash">tar -xvf linux-5.14.9.tar.xz
+cd linux-5.14.9
+cd tools/lib/bpf
+make -j $(nproc)
+make install prefix=/usr
+cd ../../bpf/bpftool
+make -j $(nproc)
+make install prefix=/usr
+</code></pre>
+<p>If you are interested in tracking the history of Linux kernel source and/or are
+comfortable using git for it, you can clone one of the git trees:</p>
+<ul>
+<li><a href="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/">stable tree</a> -
+stable releases and release candidates, this is where the tarball comes from</li>
+<li><a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/">mainline tree</a> -
+patches accepted by Linus, release candidates</li>
+<li><a href="https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git/">bpf-next tree</a> -
+development of BPF features, before being mainlined</li>
+<li><a href="https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/">bpf tree</a> -
+BPF bugfixes which are backported to the stable tree</li>
+</ul>
+<p>Assuming you want to use the stable tree:</p>
+<pre><code class="language-bash">git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+cd linux
+git tag -l # List available tags
+git checkout v5.14.9 # Check out to whatever is the newest
+cd tools/lib/bpf
+make -j $(nproc)
+make install prefix=/usr
+cd ../../bpf/bpftool
+make -j $(nproc)
+make install prefix=/usr
+</code></pre>
+<h4 id="installing-rust"><a class="header" href="#installing-rust">Installing Rust</a></h4>
+<p>Our recommended way of installing Rust is using <strong>rustup</strong>.
+<a href="https://rustup.rs/">Their website</a> contains installation instruction.</p>
+<p>After installing rustup, let's install lint tools:</p>
+<pre><code class="language-bash">rustup component add clippy rustfmt
+</code></pre>
+<p>And then cargo-libbpf, needed for building the BPF part:</p>
+<pre><code class="language-bash">cargo install libbpf-cargo
+</code></pre>
+<h4 id="building-lockc"><a class="header" href="#building-lockc">Building lockc</a></h4>
+<p>After installing all needed dependencies, it's time to build lockc.</p>
+<p>The build of the project can be done with:</p>
+<pre><code class="language-bash">cargo build
+</code></pre>
+<p>Running tests:</p>
+<pre><code class="language-bash">cargo test
+</code></pre>
+<p>Running lints:</p>
+<pre><code class="language-bash">cargo clippy
+</code></pre>
+<h4 id="installing-lockc"><a class="header" href="#installing-lockc">Installing lockc</a></h4>
+<p>To install lockc on your host, use the following command:</p>
+<pre><code class="language-bash">cargo xtask install
+</code></pre>
+<p>Do not run this command with sudo! Why?</p>
+<p>tl;dr: you will be asked for password when necessary, don't worry!</p>
+<p>Explanation: Running cargo with sudo ends with weird consequences like not
+seing cargo content from your home directory or leaving some files owned by
+root in <code>target</code>. When any destination directory is owned by root, sudo will
+be launched automatically by <code>xtask install</code> just to perform necessary
+installation steps.</p>
+<p>By default it tries to install lockc binaries in <code>/usr/local/bin</code>, but the
+destination directory can be changed by the following arguments:</p>
+<ul>
+<li><code>--destdir</code> - the rootfs of your system, default: <code>/</code></li>
+<li><code>--prefix</code> - prefix of the most of installation destinations, default:
+<code>usr/local</code></li>
+<li><code>--bindir</code> - directory for binary files, default: <code>bin</code></li>
+<li><code>--unitdir</code> - directory for systemd units, default: <code>lib/systemd/system</code></li>
+<li><code>--sysconfdir</code> - directory for configuration files, default: <code>etc</code></li>
+</ul>
+<p>By default, binaries are installed from the <code>debug</code> target profile. If you want
+to change it, use the <code>--profile</code> argument. <code>--profile release</code> is what you
+most likely want to use when packaging or installing on the production system.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../build/dapper.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../use/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../build/dapper.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../use/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>

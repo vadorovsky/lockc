@@ -4,7 +4,10 @@
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Build - lockc Documentation</title>
+
+
         <!-- Custom HTML head -->
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="**lockc** is open source software for providing MAC (Mandatory Access Control) implemented in Rust">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,15 +19,18 @@
         <link rel="stylesheet" href="../css/general.css">
         <link rel="stylesheet" href="../css/chrome.css">
         <link rel="stylesheet" href="../css/print.css" media="print">
+
         <!-- Fonts -->
         <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
         <link rel="stylesheet" href="../fonts/fonts.css">
+
         <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="../highlight.css">
         <link rel="stylesheet" href="../tomorrow-night.css">
         <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+
     </head>
     <body>
         <!-- Provide site root to javascript -->
@@ -75,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">3.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html" class="active"><strong aria-hidden="true">3.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/containerized.html"><strong aria-hidden="true">3.1.1.</strong> Containerized</a></li><li class="chapter-item expanded "><a href="../build/meson.html"><strong aria-hidden="true">3.1.2.</strong> Meson</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">3.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">3.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html"><strong aria-hidden="true">3.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">3.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/conf-libvirt.html"><strong aria-hidden="true">3.3.3.</strong> Configure libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/start-vm.html"><strong aria-hidden="true">3.3.4.</strong> Running VMs</a></li></ol></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html" class="active"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">4.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html"><strong aria-hidden="true">4.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">4.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.3.</strong> Use libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.4.</strong> Use OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -110,6 +116,7 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+
                     </div>
                 </div>
 
@@ -123,6 +130,7 @@
                         </ul>
                     </div>
                 </div>
+
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script type="text/javascript">
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
@@ -138,8 +146,26 @@
 <p>The first step to try out lockc is to build it. There are two ways to do
 that:</p>
 <ul>
-<li><strong><a href="containerized.html">Containerized</a></strong> - build project binaries within container</li>
-<li><strong><a href="meson.html">Meson</a></strong> - build binaries with Meson</li>
+<li><strong><a href="dapper.html">Dapper</a></strong> - build binaries within container
+<ul>
+<li>doesn't require any dependencies on the host system (except Docker)</li>
+<li>ensures that Rust, Cargo and all dependencies are in the newest version</li>
+<li>ensures the same behavior as on CI, aims to reduce &quot;it worked on machine&quot;
+kind of problems</li>
+<li>recommended for
+<ul>
+<li>trying out the project (especially if there is no interest in changing
+the code)</li>
+<li>final build before submitting changes in the code</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong><a href="cargo.html">Cargo</a></strong> - build binaries with Cargo (Rust build system) on the host
+<ul>
+<li>convenient for local development, IDE/editor integration</li>
+</ul>
+</li>
 </ul>
 
                     </main>
@@ -149,9 +175,11 @@ that:</p>
                             <a rel="prev" href="../configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="../build/containerized.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+
+                            <a rel="next" href="../build/dapper.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
+
                         <div style="clear: both"></div>
                     </nav>
                 </div>
@@ -161,23 +189,32 @@ that:</p>
                     <a rel="prev" href="../configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="../build/containerized.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+
+                    <a rel="next" href="../build/dapper.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
+
+
+
         <script type="text/javascript">
             window.playground_copyable = true;
         </script>
+
+
         <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+
         <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
         <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
+
+
     </body>
 </html>
