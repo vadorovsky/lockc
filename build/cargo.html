@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html" class="active"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">4.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html"><strong aria-hidden="true">4.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">4.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.3.</strong> Use libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.4.</strong> Use OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html" class="active"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li><li class="chapter-item expanded "><a href="../build/container-image.html"><strong aria-hidden="true">4.1.3.</strong> Container image</a></li></ol></li><li class="chapter-item expanded "><a href="../install/index.html"><strong aria-hidden="true">4.2.</strong> Install</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../install/docker.html"><strong aria-hidden="true">4.2.1.</strong> With Docker</a></li><li class="chapter-item expanded "><a href="../install/kubernetes.html"><strong aria-hidden="true">4.2.2.</strong> With Kubernetes</a></li></ol></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Development environment (Terraform)</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.1.</strong> libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.2.</strong> OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -116,6 +116,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/rancher-sandbox/lockc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -142,7 +145,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h3 id="cargo"><a class="header" href="#cargo">Cargo</a></h3>
+                        <h1 id="cargo"><a class="header" href="#cargo">Cargo</a></h1>
 <p>If you are comfortable with installing all dependencies on your host system,
 you need to install the following software:</p>
 <ul>
@@ -150,7 +153,7 @@ you need to install the following software:</p>
 <li>libbpf, bpftool</li>
 <li>Rust, Cargo</li>
 </ul>
-<h4 id="llvm"><a class="header" href="#llvm">LLVM</a></h4>
+<h2 id="llvm"><a class="header" href="#llvm">LLVM</a></h2>
 <p>We need a recent version of LLVM (at least 12) to build BPF programs.</p>
 <p>LLVM has an official <a href="https://apt.llvm.org/">apt repository</a> with recent
 stable versions.</p>
@@ -166,7 +169,7 @@ zypper in clang llvm
 </code></pre>
 <p>If there is no packaging of recent LLVM versions for your distribution, there
 is also an option to <a href="https://releases.llvm.org/download.html">download binaries</a>.</p>
-<h4 id="libbpf-bpftool"><a class="header" href="#libbpf-bpftool">libbpf, bpftool</a></h4>
+<h2 id="libbpf-bpftool"><a class="header" href="#libbpf-bpftool">libbpf, bpftool</a></h2>
 <p>libbpf is the official C library for writing, loading and managing BPF programs
 and entities. bpftool is the official CLI for interacting with BPF subsystem.</p>
 <p>Distributions with up to date software (Arch, Fedora, openSUSE Tumbleweed)
@@ -210,7 +213,7 @@ cd ../../bpf/bpftool
 make -j $(nproc)
 make install prefix=/usr
 </code></pre>
-<h4 id="installing-rust"><a class="header" href="#installing-rust">Installing Rust</a></h4>
+<h2 id="installing-rust"><a class="header" href="#installing-rust">Installing Rust</a></h2>
 <p>Our recommended way of installing Rust is using <strong>rustup</strong>.
 <a href="https://rustup.rs/">Their website</a> contains installation instruction.</p>
 <p>After installing rustup, let's install lint tools:</p>
@@ -219,7 +222,7 @@ make install prefix=/usr
 <p>And then cargo-libbpf, needed for building the BPF part:</p>
 <pre><code class="language-bash">cargo install libbpf-cargo
 </code></pre>
-<h4 id="building-lockc"><a class="header" href="#building-lockc">Building lockc</a></h4>
+<h2 id="building-lockc"><a class="header" href="#building-lockc">Building lockc</a></h2>
 <p>After installing all needed dependencies, it's time to build lockc.</p>
 <p>The build of the project can be done with:</p>
 <pre><code class="language-bash">cargo build
@@ -230,7 +233,7 @@ make install prefix=/usr
 <p>Running lints:</p>
 <pre><code class="language-bash">cargo clippy
 </code></pre>
-<h4 id="installing-lockc"><a class="header" href="#installing-lockc">Installing lockc</a></h4>
+<h2 id="installing-lockc"><a class="header" href="#installing-lockc">Installing lockc</a></h2>
 <p>To install lockc on your host, use the following command:</p>
 <pre><code class="language-bash">cargo xtask install
 </code></pre>
@@ -241,7 +244,7 @@ seing cargo content from your home directory or leaving some files owned by
 root in <code>target</code>. When any destination directory is owned by root, sudo will
 be launched automatically by <code>xtask install</code> just to perform necessary
 installation steps.</p>
-<p>By default it tries to install lockc binaries in <code>/usr/local/bin</code>, but the
+<p>By default it tries to install lockcd binary in <code>/usr/local/bin</code>, but the
 destination directory can be changed by the following arguments:</p>
 <ul>
 <li><code>--destdir</code> - the rootfs of your system, default: <code>/</code></li>
@@ -254,6 +257,27 @@ destination directory can be changed by the following arguments:</p>
 <p>By default, binaries are installed from the <code>debug</code> target profile. If you want
 to change it, use the <code>--profile</code> argument. <code>--profile release</code> is what you
 most likely want to use when packaging or installing on the production system.</p>
+<h2 id="building-tarball-with-binary-and-unit"><a class="header" href="#building-tarball-with-binary-and-unit">Building tarball with binary and unit</a></h2>
+<p>To make distribution of lockc for Docker users easier, we have a possibility of
+building an archive with binary and systemd unit which can be just unpacked in
+<code>/</code> directory. It can be done by the following command:</p>
+<pre><code class="language-bash">cargo xtask bintar
+</code></pre>
+<p>By default it archives lockcd binary in <code>usr/local/bin</code>, but the
+destination directory can be changed by the following arguments:</p>
+<ul>
+<li><code>--prefix</code> - prefix of the most of installation destinations, default:
+<code>usr/local</code></li>
+<li><code>--bindir</code> - directory for binary files, default: <code>bin</code></li>
+<li><code>--unitdir</code> - directory for systemd units, default: <code>lib/systemd/system</code></li>
+<li><code>--sysconfdir</code> - directory for configuration files, default: <code>etc</code></li>
+</ul>
+<p>By default, binaries are installed from the <code>debug</code> target profile. If you want
+to change it, use the <code>--profile</code> argument. <code>--profile release</code> is what you
+most likely want to use when creating a tarball for releases and production
+systems.</p>
+<p>The resulting binary should be available as <code>target/[profile]/lockc.tar.gz</code>
+(i.e. <code>target/debug/lockc.tar.gz</code>).</p>
 
                     </main>
 
@@ -263,7 +287,7 @@ most likely want to use when packaging or installing on the production system.</
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../use/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../build/container-image.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -277,7 +301,7 @@ most likely want to use when packaging or installing on the production system.</
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../use/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../build/container-image.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

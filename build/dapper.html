@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html" class="active"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li></ol></li><li class="chapter-item expanded "><a href="../use/index.html"><strong aria-hidden="true">4.2.</strong> Use</a></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Provision</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/base-image.html"><strong aria-hidden="true">4.3.1.</strong> Base image</a></li><li class="chapter-item expanded "><a href="../terraform/custom-kernel.html"><strong aria-hidden="true">4.3.2.</strong> (Optional) Custom kernel</a></li><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.3.</strong> Use libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.4.</strong> Use OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../containers-do-not-contain.html"><strong aria-hidden="true">2.</strong> Containers do not contain</a></li><li class="chapter-item expanded "><a href="../architecture.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">4.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/index.html"><strong aria-hidden="true">4.1.</strong> Build</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../build/dapper.html" class="active"><strong aria-hidden="true">4.1.1.</strong> Dapper</a></li><li class="chapter-item expanded "><a href="../build/cargo.html"><strong aria-hidden="true">4.1.2.</strong> Cargo</a></li><li class="chapter-item expanded "><a href="../build/container-image.html"><strong aria-hidden="true">4.1.3.</strong> Container image</a></li></ol></li><li class="chapter-item expanded "><a href="../install/index.html"><strong aria-hidden="true">4.2.</strong> Install</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../install/docker.html"><strong aria-hidden="true">4.2.1.</strong> With Docker</a></li><li class="chapter-item expanded "><a href="../install/kubernetes.html"><strong aria-hidden="true">4.2.2.</strong> With Kubernetes</a></li></ol></li><li class="chapter-item expanded "><a href="../terraform/index.html"><strong aria-hidden="true">4.3.</strong> Development environment (Terraform)</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../terraform/libvirt.html"><strong aria-hidden="true">4.3.1.</strong> libvirt</a></li><li class="chapter-item expanded "><a href="../terraform/openstack.html"><strong aria-hidden="true">4.3.2.</strong> OpenStack</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../policies/index.html"><strong aria-hidden="true">5.</strong> Policies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../policies/file-access.html"><strong aria-hidden="true">5.1.</strong> File access</a></li><li class="chapter-item expanded "><a href="../policies/mount.html"><strong aria-hidden="true">5.2.</strong> Mount</a></li><li class="chapter-item expanded "><a href="../policies/syslog.html"><strong aria-hidden="true">5.3.</strong> Syslog</a></li></ol></li><li class="chapter-item expanded "><a href="../tuning/index.html"><strong aria-hidden="true">6.</strong> Tuning</a></li><li class="chapter-item expanded "><a href="../demos/index.html"><strong aria-hidden="true">7.</strong> Demos</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../demos/mount.html"><strong aria-hidden="true">7.1.</strong> Mount</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -116,6 +116,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/rancher-sandbox/lockc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -142,7 +145,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h3 id="dapper"><a class="header" href="#dapper">Dapper</a></h3>
+                        <h1 id="dapper"><a class="header" href="#dapper">Dapper</a></h1>
+<h2 id="building-lockc"><a class="header" href="#building-lockc">Building lockc</a></h2>
 <p>One option for building lockc is using dapper to perform the build inside
 container, without installing needed dependencies on the host system.</p>
 <p>This guide assumes that you have <code>docker</code> or any other container engine
@@ -178,6 +182,27 @@ directory.</p>
 <p>Running lints:</p>
 <pre><code class="language-bash">dapper cargo clippy
 </code></pre>
+<h2 id="building-tarball-with-binary-and-unit"><a class="header" href="#building-tarball-with-binary-and-unit">Building tarball with binary and unit</a></h2>
+<p>To make distribution of lockc for Docker users easier, we have a possibility of
+building an archive with binary and systemd unit which can be just unpacked in
+<code>/</code> directory. It can be done by the following command:</p>
+<pre><code class="language-bash">dapper cargo xtask bintar
+</code></pre>
+<p>By default it archives lockcd binary in <code>usr/local/bin</code>, but the
+destination directory can be changed by the following arguments:</p>
+<ul>
+<li><code>--prefix</code> - prefix of the most of installation destinations, default:
+<code>usr/local</code></li>
+<li><code>--bindir</code> - directory for binary files, default: <code>bin</code></li>
+<li><code>--unitdir</code> - directory for systemd units, default: <code>lib/systemd/system</code></li>
+<li><code>--sysconfdir</code> - directory for configuration files, default: <code>etc</code></li>
+</ul>
+<p>By default, binaries are installed from the <code>debug</code> target profile. If you want
+to change it, use the <code>--profile</code> argument. <code>--profile release</code> is what you
+most likely want to use when creating a tarball for releases and production
+systems.</p>
+<p>The resulting binary should be available as <code>target/[profile]/lockc.tar.gz</code>
+(i.e. <code>target/debug/lockc.tar.gz</code>).</p>
 
                     </main>
 
