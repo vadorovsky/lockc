@@ -62,10 +62,7 @@ enum ContainerType {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Mount {
-    destination: String,
-    r#type: String,
     source: String,
-    options: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
