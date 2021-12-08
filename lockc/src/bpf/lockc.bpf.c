@@ -200,6 +200,8 @@ int BPF_PROG(syslog_audit, int type, int ret_prev)
 		goto out;
 	case POLICY_LEVEL_NOT_FOUND:
 		goto out;
+	case POLICY_LEVEL_LOCKC:
+		goto out;
 	case POLICY_LEVEL_RESTRICTED:
 		bpf_printk("syslog: restricted: deny\n");
 		ret = -EPERM;
@@ -232,6 +234,95 @@ struct paths_callback_ctx {
 	/* Output whether a match was found. */
 	bool found;
 };
+
+SEC("fexit/filename_lookup")
+int BPF_PROG(filename_lookup, int dfd, struct filename *name, unsigned flags,
+	     struct path *path, struct path *root)
+{
+	pid_t pid = bpf_get_current_pid_tgid() >> 32;
+	enum container_policy_level policy_level = get_policy_level(pid);
+
+	switch (policy_level) {
+	case POLICY_LEVEL_LOOKUP_ERR:
+		/* Shouldn't happen */
+		return 0;
+	case POLICY_LEVEL_NOT_FOUND:
+		return 0;
+	// case POLICY_LEVEL_NOT_FOUND:
+	case POLICY_LEVEL_LOCKC:
+	case POLICY_LEVEL_RESTRICTED:
+	case POLICY_LEVEL_BASELINE:
+	case POLICY_LEVEL_PRIVILEGED:
+		break;
+	}
+
+	bpf_printk("pid: %d\n", pid);
+	// bpf_printk("filename_lookup: %s\n", BPF_CORE_READ(name, name));
+	bpf_printk("filename_lookup: %s\n", BPF_CORE_READ(name, name));
+	unsigned long i_ino = BPF_CORE_READ(path, dentry, d_inode, i_ino);
+	unsigned int i_rdev = BPF_CORE_READ(path, dentry, d_inode, i_rdev);
+	unsigned long parent_i_ino = 0;
+	unsigned int parent_i_rdev = 0;
+	if (BPF_CORE_READ(path, dentry, d_parent) != NULL) {
+		parent_i_ino = BPF_CORE_READ(path, dentry, d_parent,
+					     d_inode, i_ino);
+		parent_i_rdev = BPF_CORE_READ(path, dentry, d_parent,
+					      d_inode, i_rdev);
+	}
+	bpf_printk("inode: %lu\n", i_ino);
+	// struct accessed_path p = {
+	// 	.path = n,
+	// };
+	struct accessed_path p = {};
+	// strcpy((&p)->path, n, strlen(n, PATH_LEN));
+	if (unlikely(bpf_probe_read_kernel_str(&(&p)->path,
+					       PATH_LEN,
+					       BPF_CORE_READ(name, name)) < 0))
+	    return 0;
+	struct inode_full_info iif = {
+		.i_ino = i_ino,
+		.i_rdev = i_rdev,
+		.parent_i_ino = parent_i_ino,
+		.parent_i_rdev = parent_i_rdev,
+	};
+	bpf_map_update_elem(&inodes, &p, &iif, 0);
+
+	struct dentry *d = BPF_CORE_READ(path, dentry);
+	unsigned int i;
+	for (i = 0; i < PATH_MAX_DEPTH; i++) {
+		d = BPF_CORE_READ(d, d_parent);
+		unsigned long cur_i_ino = BPF_CORE_READ(d, d_inode, i_ino);
+		unsigned int cur_i_rdev = BPF_CORE_READ(d, d_inode, i_rdev);
+		// if (cur_i_ino == 0)
+		// 	break;
+		bpf_printk("found parent %llu %llu path: %s\n", cur_i_ino,
+			   cur_i_rdev, BPF_CORE_READ(d, d_name).name);
+		struct inode_info ii = {
+			.i_ino = cur_i_ino,
+			.i_rdev = cur_i_rdev,
+		};
+		unsigned long next_i_ino = BPF_CORE_READ(d, d_parent,
+							 d_inode, i_ino);
+		unsigned int next_i_rdev = BPF_CORE_READ(d, d_parent,
+							 d_inode, i_rdev);
+		struct inode_info nii = {
+			.i_ino = next_i_ino,
+			.i_rdev = next_i_rdev,
+		};
+		// if (next_hash == 0)
+		// 	break;
+		bpf_map_update_elem(&inodes_parents, &ii, &nii,
+				    0);
+	}
+
+	return 0;
+}
+
+SEC("uprobe/allow_mount")
+int BPF_KPROBE(allow_mount, int *retp, const char *path)
+{
+	return 0;
+}
 
 /*
  * check_allowed_paths - callback function which checks whether the given source
@@ -305,7 +396,7 @@ int BPF_PROG(mount_audit, const char *dev_name, const struct path *path,
 	struct path *path_mut = (struct path *) path;
 	unsigned char type_bind[MOUNT_TYPE_LEN] = MOUNT_TYPE_BIND;
 	unsigned char type_safe[MOUNT_TYPE_LEN];
-	unsigned char dev_name_safe[PATH_LEN];
+	// unsigned char dev_name_safe[PATH_LEN];
 
 	switch (policy_level) {
 	case POLICY_LEVEL_LOOKUP_ERR:
@@ -313,6 +404,8 @@ int BPF_PROG(mount_audit, const char *dev_name, const struct path *path,
 		ret = -EPERM;
 		goto out;
 	case POLICY_LEVEL_NOT_FOUND:
+		goto out;
+	case POLICY_LEVEL_LOCKC:
 		goto out;
 	case POLICY_LEVEL_RESTRICTED:
 		break;
@@ -350,61 +443,30 @@ int BPF_PROG(mount_audit, const char *dev_name, const struct path *path,
 		ret = -EFAULT;
 		goto out;
 	}
-	if (unlikely(bpf_probe_read_kernel_str(&dev_name_safe, PATH_LEN,
+	// if (unlikely(bpf_probe_read_kernel_str(&dev_name_safe, PATH_LEN,
+	// 				       dev_name) < 0)) {
+	// 	bpf_printk("error: could not read the mount dev_name\n");
+	// 	ret = -EFAULT;
+	// 	goto out;
+	// }
+
+	struct accessed_path p = {};
+	if (unlikely(bpf_probe_read_kernel_str(&(&p)->path,
+					       PATH_LEN,
 					       dev_name) < 0)) {
 		bpf_printk("error: could not read the mount dev_name\n");
 		ret = -EFAULT;
 		goto out;
 	}
-	struct paths_callback_ctx cb = {
-		.found = false,
-		.path = dev_name_safe
-	};
 
-	/*
-	 * NOTE(vadorovsky): Yeah, we need to check the policy yet another
-	 * time. That's because BPF verifier complains when the map argument
-	 * in BPF helpers is not a direct pointer to the global variable.
-	 * Creating a new (struct bpf_map *) and assigning a map to it does not
-	 * work - it still annoys the verifier.
-	 * What's more, any attempt to move the code above to a separate
-	 * function annoyed the verifier too.
-	 * Therefore I was pretty much forced to either:
-	 * * keep one switch statement, copy&paste a huge portion of code
-	 *   between POLICY_LEVEL_RESTRICTED and POLICY_LEVEL_BASELINE arms -
-	 *   that would give the best performance, but really bad readability
-	 *   and maintability of code
-	 * * do what I did - use two switch statements, one for initial policy
-	 *   pick, then the second one after executing a common code shared
-	 *   between restricted and baseline policy; not the most optimal, but
-	 *   hurts my eyes less
-	 * If anyone can show or contribute the better solution, I owe them a
-	 * beer!
-	 */
-	switch (policy_level) {
-	case POLICY_LEVEL_RESTRICTED:
-		bpf_for_each_map_elem(&allowed_paths_mount_restricted,
-				      check_paths, &cb, 0);
-		if (cb.found) {
-			bpf_printk("mount: restricted: allow\n");
-			goto out;
-		}
-		break;
-	case POLICY_LEVEL_BASELINE:
-		bpf_for_each_map_elem(&allowed_paths_mount_baseline,
-				      check_paths, &cb, 0);
-		if (cb.found) {
-			bpf_printk("mount: baseline: allow\n");
-			goto out;
-		}
-		break;
-	defaut:
-		/* unreachable */
+	struct inode_info *ii = bpf_map_lookup_elem(&inodes, &p);
+	if (ii == NULL) {
+		bpf_printk("error: could not find dentry for %s\n", p.path);
+		ret = -EFAULT;
 		goto out;
 	}
 
-	bpf_printk("mount: deny\n");
-	ret = -EPERM;
+	bpf_printk("found inode %llu\n", ii->i_ino);
 
 out:
 	if (ret_prev != 0)
@@ -427,6 +489,8 @@ int BPF_PROG(open_audit, struct file *file, int ret_prev)
 		ret = -EPERM;
 		goto out;
 	case POLICY_LEVEL_NOT_FOUND:
+		goto out;
+	case POLICY_LEVEL_LOCKC:
 		goto out;
 	case POLICY_LEVEL_RESTRICTED:
 		break;

@@ -114,6 +114,9 @@ pub fn init_runtimes(map: &mut libbpf_rs::Map) -> Result<(), InitRuntimesError> 
 
 #[derive(thiserror::Error, Debug)]
 pub enum InitAllowedPathsError {
+    #[error(transparent)]
+    IO(#[from] io::Error),
+
     #[error("could not create a new BPF struct instance")]
     NewBpfstructError(#[from] bpfstructs::NewBpfstructError),
 
@@ -126,11 +129,17 @@ pub enum InitAllowedPathsError {
 /// decision whether to allow a bind mount for a given container.
 pub fn init_allowed_paths(mut maps: LockcMapsMut) -> Result<(), InitAllowedPathsError> {
     for (i, allowed_path_s) in SETTINGS.allowed_paths_mount_restricted.iter().enumerate() {
+        // if path::Path::new(allowed_path_s).exists() {
+        //     fs::metadata(allowed_path_s)?;
+        // }
         bpfstructs::accessed_path::new(allowed_path_s)?
             .map_update(maps.allowed_paths_mount_restricted(), i.try_into().unwrap())?;
     }
 
     for (i, allowed_path_s) in SETTINGS.allowed_paths_mount_baseline.iter().enumerate() {
+        // if path::Path::new(allowed_path_s).exists() {
+        //     fs::metadata(allowed_path_s)?;
+        // }
         bpfstructs::accessed_path::new(allowed_path_s)?
             .map_update(maps.allowed_paths_mount_baseline(), i.try_into().unwrap())?;
     }
@@ -145,6 +154,22 @@ pub fn init_allowed_paths(mut maps: LockcMapsMut) -> Result<(), InitAllowedPaths
     for (i, allowed_path_s) in SETTINGS.allowed_paths_access_baseline.iter().enumerate() {
         bpfstructs::accessed_path::new(allowed_path_s)?
             .map_update(maps.allowed_paths_access_baseline(), i.try_into().unwrap())?;
+    }
+
+    Ok(())
+}
+
+pub fn register_allowed_paths() -> Result<(), io::Error> {
+    for allowed_path_s in SETTINGS.allowed_paths_mount_restricted.iter() {
+        if path::Path::new(allowed_path_s).exists() {
+            fs::metadata(allowed_path_s)?;
+        }
+    }
+
+    for allowed_path_s in SETTINGS.allowed_paths_mount_baseline.iter() {
+        if path::Path::new(allowed_path_s).exists() {
+            fs::metadata(allowed_path_s)?;
+        }
     }
 
     Ok(())
@@ -228,6 +253,14 @@ impl<'a> BpfContext<'a> {
         let path_map_processes = path_base_ts.join("map_processes");
         skel.maps_mut().processes().pin(path_map_processes)?;
 
+        let path_map_inodes = path_base_ts.join("map_inodes");
+        skel.maps_mut().inodes().pin(path_map_inodes)?;
+
+        let path_map_inodes_parents = path_base_ts.join("map_inodes_parents");
+        skel.maps_mut()
+            .inodes_parents()
+            .pin(path_map_inodes_parents)?;
+
         let path_map_allowed_paths_mount_restricted =
             path_base_ts.join("map_allowed_paths_mount_restricted");
         skel.maps_mut()
@@ -265,6 +298,11 @@ impl<'a> BpfContext<'a> {
         let path_program_syslog = path_base_ts.join("prog_syslog_audit");
         skel.progs_mut().syslog_audit().pin(path_program_syslog)?;
 
+        let path_program_filename_lookup = path_base_ts.join("prog_filename_lookup");
+        skel.progs_mut()
+            .filename_lookup()
+            .pin(path_program_filename_lookup)?;
+
         let path_program_mount = path_base_ts.join("prog_mount_audit");
         skel.progs_mut().mount_audit().pin(path_program_mount)?;
 
@@ -297,6 +335,10 @@ impl<'a> BpfContext<'a> {
         let mut link_syslog = skel.progs_mut().syslog_audit().attach_lsm()?;
         let path_link_syslog = path_base_ts.join("link_syslog_audit");
         link_syslog.pin(path_link_syslog)?;
+
+        let mut link_filename_lookup = skel.progs_mut().filename_lookup().attach_trace()?;
+        let path_link_filename_lookup = path_base_ts.join("link_filename_lookup");
+        link_filename_lookup.pin(path_link_filename_lookup)?;
 
         let mut link_mount = skel.progs_mut().mount_audit().attach_lsm()?;
         let path_link_mount = path_base_ts.join("link_mount_audit");

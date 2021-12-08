@@ -1,8 +1,11 @@
-use std::{env, path};
+use std::{env, path, process};
 
 use chrono::prelude::*;
 use log::debug;
 use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
+
+use lockc::bpfstructs::container_policy_level_POLICY_LEVEL_LOCKC;
+use lockc_uprobes::add_container;
 
 fn main() -> anyhow::Result<()> {
     let log_level = match env::var("LOCKC_DEBUG") {
@@ -42,6 +45,17 @@ fn main() -> anyhow::Result<()> {
     debug!("initialized BPF skeleton, loaded programs");
     lockc::cleanup(path_base, &dirname)?;
     debug!("cleaned up old BPF programs");
+
+    let mut ret: i32 = -libc::EAGAIN;
+    add_container(
+        &mut ret as *mut i32,
+        0,
+        process::id() as i32,
+        container_policy_level_POLICY_LEVEL_LOCKC,
+    );
+    lockc::runc::check_uprobe_ret(ret)?;
+
+    lockc::register_allowed_paths()?;
 
     lockc::runc::RuncWatcher::new()?.work_loop()?;
 

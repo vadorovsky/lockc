@@ -1,4 +1,10 @@
+use std::os::raw::c_char;
+
 use libc::pid_t;
+
+#[no_mangle]
+#[inline(never)]
+pub extern "C" fn allow_mount(_retp: *mut i32, _path: *const c_char) {}
 
 #[no_mangle]
 #[inline(never)]

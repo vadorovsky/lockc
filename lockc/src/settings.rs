@@ -8,6 +8,8 @@ static DIR_PTS: &str = "/dev/pts";
 
 /// Storage directory used by libpod (podman, cri-o).
 static DIR_STORAGE_LIBPOD: &str = "/var/lib/containers/storage";
+/// Storage directory used by docker (btrfs driver).
+static DIR_STORAGE_DOCKER_BTRFS: &str = "/var/lib/docker/btrfs";
 /// Storage directory used by docker (overlay2 driver).
 static DIR_STORAGE_DOCKER_OVERLAY2: &str = "/var/lib/docker/overlay2";
 /// Storage directory used by containerd.
@@ -257,6 +259,7 @@ impl Settings {
             vec![
                 DIR_PTS.to_string(),
                 DIR_STORAGE_LIBPOD.to_string(),
+                DIR_STORAGE_DOCKER_BTRFS.to_string(),
                 DIR_STORAGE_DOCKER_OVERLAY2.to_string(),
                 DIR_STORAGE_CONTAINERD.to_string(),
                 DIR_STORAGE_CRI_CONTAINERD.to_string(),
@@ -335,6 +338,7 @@ impl Settings {
                 // Paths used by container runtimes.
                 DIR_PTS.to_string(),
                 DIR_STORAGE_LIBPOD.to_string(),
+                DIR_STORAGE_DOCKER_BTRFS.to_string(),
                 DIR_STORAGE_DOCKER_OVERLAY2.to_string(),
                 DIR_STORAGE_CONTAINERD.to_string(),
                 DIR_STORAGE_CRI_CONTAINERD.to_string(),

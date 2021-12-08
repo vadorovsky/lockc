@@ -68,3 +68,14 @@ static __always_inline int strcmp(const unsigned char *p1,
 
 	return 0;
 }
+
+static __always_inline int strcpy(unsigned char *destination,
+				  const unsigned char *source, size_t len)
+{
+	size_t i;
+
+	for (i = 0; i < len; i++)
+		 destination[i] = source[i];
+
+	return i;
+}

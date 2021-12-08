@@ -15,3 +15,15 @@ struct process {
 struct accessed_path {
 	unsigned char path[PATH_LEN];
 };
+
+struct inode_full_info {
+	unsigned long i_ino;
+	unsigned int i_rdev;
+	unsigned long parent_i_ino;
+	unsigned int parent_i_rdev;
+};
+
+struct inode_info {
+	unsigned long i_ino;
+	unsigned int i_rdev;
+};

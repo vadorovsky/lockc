@@ -38,6 +38,22 @@ struct {
 	__type(value, struct process);
 } processes SEC(".maps");
 
+struct {
+	__uint(type, BPF_MAP_TYPE_HASH);
+	__uint(max_entries, 1000);
+	// __type(key, struct accessed_path);
+	__type(key, u32);
+	// __type(value, struct inode_full_info);
+	__type(value, struct inode_info);
+} inodes SEC(".maps");
+
+struct {
+	__uint(type, BPF_MAP_TYPE_HASH);
+	__uint(max_entries, 1000);
+	__type(key, struct inode_info);
+	__type(value, struct inode_info);
+} inodes_parents SEC(".maps");
+
 /*
  * allowed_paths_mount_restricted - BPF map which contains the source path
  * prefixes allowed to bind mount from host to restricted containers. It should

@@ -10,6 +10,8 @@ allowed_paths_mount_restricted = [
     "/dev/pts",
     # Storage directory used by libpod (podman, cri-o).
     "/var/lib/containers/storage",
+    # Storage directory used by docker (btrfs driver).
+    "/var/lib/docker/btrfs",
     # Storage directory used by docker (overlay2 driver).
     "/var/lib/docker/overlay2",
     # Storage directory used by containerd.
@@ -165,6 +167,8 @@ allowed_paths_mount_baseline = [
     "/dev/pts",
     # Storage directory used by libpod (podman, cri-o).
     "/var/lib/containers/storage",
+    # Storage directory used by docker (btrfs driver).
+    "/var/lib/docker/btrfs",
     # Storage directory used by docker (overlay2 driver).
     "/var/lib/docker/overlay2",
     # Storage directory used by containerd.

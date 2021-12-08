@@ -306,7 +306,7 @@ pub enum UprobeError {
     Unknown,
 }
 
-fn check_uprobe_ret(ret: i32) -> Result<(), UprobeError> {
+pub fn check_uprobe_ret(ret: i32) -> Result<(), UprobeError> {
     match ret {
         0 => Ok(()),
         n if n == -libc::EAGAIN => Err(UprobeError::Call),
