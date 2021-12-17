@@ -16,16 +16,18 @@ use std::{
     thread, time,
 };
 
+use aya::{
+    include_bytes_aligned,
+    maps::HashMap,
+    programs::{BtfTracePoint, FExit, Lsm, ProgramError, UProbe},
+    Bpf, BpfError, BpfLoader, Btf, BtfError,
+};
 use byteorder::{NativeEndian, WriteBytesExt};
 use sysctl::Sysctl;
 
 use bpfstructs::BpfStruct;
 use lockc_uprobes::{add_container, add_process, delete_container};
 use uprobe_ext::FindSymbolUprobeExt;
-
-#[rustfmt::skip]
-mod bpf;
-use bpf::*;
 
 pub mod bpfstructs;
 pub mod runc;
@@ -83,33 +85,12 @@ pub fn hash(s: &str) -> Result<u32, HashError> {
     Ok(hash)
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum InitRuntimesError {
-    #[error("hash error")]
-    HashError(#[from] HashError),
+pub fn load_bpf<P: AsRef<Path>>(path_base_r: P) -> Result<Bpf, BpfError> {
+    let path_base = path_base_r.as_ref();
+    let data = include_bytes_aligned!("../../target/bpfel-unknown-none/debug/lockc");
+    let bpf = BpfLoader::new().map_pin_path(path_base).load(data)?;
 
-    #[error("could not convert the hash to a byte array")]
-    ByteWriteError(#[from] io::Error),
-
-    #[error("libbpf error")]
-    LibbpfError(#[from] libbpf_rs::Error),
-}
-
-/// Registers the names of supported container runtime init processes in a BPF
-/// map. Based on that information, BPF programs will track those processes and
-/// their children.
-pub fn init_runtimes(map: &mut libbpf_rs::Map) -> Result<(), InitRuntimesError> {
-    let runtimes = &SETTINGS.runtimes;
-    let val: [u8; 4] = [0, 0, 0, 0];
-
-    for runtime in runtimes.iter() {
-        let key = hash(runtime)?;
-        let mut key_b = vec![];
-        key_b.write_u32::<NativeEndian>(key)?;
-        map.update(&key_b, &val, libbpf_rs::MapFlags::empty())?;
-    }
-
-    Ok(())
+    Ok(bpf)
 }
 
 #[derive(thiserror::Error, Debug)]
