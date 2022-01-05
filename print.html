@@ -650,22 +650,24 @@ should work:</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="on-kubernetes"><a class="header" href="#on-kubernetes">On Kubernetes</a></h1>
 <p>This section explains how to install lockc on a Kubernetes cluster with
 <a href="https://helm.sh/">helm</a>.</p>
-<p>The helm chart is available in lockc git repository / source code.
+<p>The helm chart is available on <a href="https://github.com/rancher-sandbox/lockc-helm-charts">lockc-helm-chart</a> git repository.
 Installation with default values can be done with:</p>
-<pre><code class="language-bash">helm install lockc contrib/helm/lockc/ --namespace kube-system
+<pre><code class="language-bash">repo add lockc https://rancher-sandbox.github.io/lockc-helm-charts/
+helm install install --create-namespace -n lockc lockc lockc/lockc
 </code></pre>
+<p>More info on lockc helm chart installation can be found <a href="https://rancher-sandbox.github.io/lockc-helm-charts">here</a></p>
 <p>To use your own container image, you can override values. Please refer to the
 <a href="install/../build/container-image.html">Container image</a> section for instructions about
 building container images with lockc. Let's assume that you pushed an image
 with lockc to <code>ttl.sh/caa530ed-1371-43f7-a9ad-293a4f930f83:30m</code>. In that case,
 installation with that image can be done with the following command:</p>
-<pre><code class="language-bash">helm install lockc contrib/helm/lockc/ --namespace kube-system \
+<pre><code class="language-bash">helm install lockc lockc/lockc --namespace lockc \
     --set lockcd.image.repository=ttl.sh/caa530ed-1371-43f7-a9ad-293a4f930f83 \
     --set lockcd.image.tag=30m
 </code></pre>
 <p>Enabling debug logs can be helpful for troubleshooting or development. That can
 be done with the following command:</p>
-<pre><code class="language-bash">helm install lockc contrib/helm/lockc/ --namespace kube-system \
+<pre><code class="language-bash">helm install lockc lockc/lockc/ --namespace lockc \
     --set lockcd.image.repository=ttl.sh/caa530ed-1371-43f7-a9ad-293a4f930f83 \
     --set lockcd.image.tag=30m \
     --set lockcd.debug.enabled=true
