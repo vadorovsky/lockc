@@ -7,7 +7,7 @@
 
 
         <!-- Custom HTML head -->
-
+        
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="**lockc** is open source software for providing MAC (Mandatory Access Control) implemented in Rust">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,7 +89,7 @@
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
+                                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky bordered">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -172,7 +172,7 @@ dapper.
 <a href="cargo.html">More information about cargo can be found here.</a></p>
 <p>The build (of both BPF and userspace part) can be performed by running the
 following command:</p>
-<pre><code class="language-bash">dapper cargo build
+<pre><code class="language-bash">DOCKER_BUILDKIT=1 dapper cargo build
 </code></pre>
 <p>A successful build should result in binaries being present in <code>target/debug</code>
 directory.</p>
