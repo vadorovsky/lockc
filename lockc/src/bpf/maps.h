@@ -9,10 +9,10 @@
  * process for runc).
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, 16);
-	__type(key, u32);
-	__type(value, u32);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, 16);
+  __type(key, u32);
+  __type(value, u32);
 } runtimes SEC(".maps");
 
 /*
@@ -20,10 +20,10 @@ struct {
  * enforced on the given container.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PID_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct container);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, PID_MAX_LIMIT);
+  __type(key, u32);
+  __type(value, struct container);
 } containers SEC(".maps");
 
 /*
@@ -32,11 +32,16 @@ struct {
  * BPF map, so it can be used immediately for lookups in `containers` map.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PID_MAX_LIMIT);
-	__type(key, pid_t);
-	__type(value, struct process);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, PID_MAX_LIMIT);
+  __type(key, pid_t);
+  __type(value, struct process);
 } processes SEC(".maps");
+
+struct path_mount_key {
+  struct bpf_lpm_trie_key lpm_key;
+  unsigned char path[PATH_LEN];
+};
 
 /*
  * allowed_paths_mount_restricted - BPF map which contains the source path
@@ -45,10 +50,11 @@ struct {
  * with the -v option.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PATH_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct accessed_path);
+  __uint(type, BPF_MAP_TYPE_LPM_TRIE);
+  __uint(map_flags, BPF_F_NO_PREALLOC);
+  __uint(max_entries, PATH_MAX_LIMIT);
+  __type(key, struct path_mount_key);
+  __type(value, u32);
 } allowed_paths_mount_restricted SEC(".maps");
 
 /*
@@ -58,10 +64,11 @@ struct {
  * paths we allow to mount with -v option.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PATH_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct accessed_path);
+  __uint(type, BPF_MAP_TYPE_LPM_TRIE);
+  __uint(map_flags, BPF_F_NO_PREALLOC);
+  __uint(max_entries, PATH_MAX_LIMIT);
+  __type(key, struct path_mount_key);
+  __type(value, u32);
 } allowed_paths_mount_baseline SEC(".maps");
 
 /*
@@ -70,10 +77,10 @@ struct {
  * restricted containers.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PATH_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct accessed_path);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, PATH_MAX_LIMIT);
+  __type(key, u32);
+  __type(value, struct accessed_path);
 } allowed_paths_access_restricted SEC(".maps");
 
 /*
@@ -82,10 +89,10 @@ struct {
  * baseline containers.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PATH_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct accessed_path);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, PATH_MAX_LIMIT);
+  __type(key, u32);
+  __type(value, struct accessed_path);
 } allowed_paths_access_baseline SEC(".maps");
 
 /*
@@ -94,10 +101,10 @@ struct {
  * restricted containers.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PATH_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct accessed_path);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, PATH_MAX_LIMIT);
+  __type(key, u32);
+  __type(value, struct accessed_path);
 } denied_paths_access_restricted SEC(".maps");
 
 /*
@@ -106,8 +113,8 @@ struct {
  * baseline containers.
  */
 struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, PATH_MAX_LIMIT);
-	__type(key, u32);
-	__type(value, struct accessed_path);
+  __uint(type, BPF_MAP_TYPE_HASH);
+  __uint(max_entries, PATH_MAX_LIMIT);
+  __type(key, u32);
+  __type(value, struct accessed_path);
 } denied_paths_access_baseline SEC(".maps");

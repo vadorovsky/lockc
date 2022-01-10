@@ -5,13 +5,13 @@
 #include "policy.h"
 
 struct container {
-	enum container_policy_level policy_level;
+  enum container_policy_level policy_level;
 };
 
 struct process {
-	unsigned int container_id;
+  unsigned int container_id;
 };
 
 struct accessed_path {
-	unsigned char path[PATH_LEN];
+  unsigned char path[PATH_LEN];
 };
