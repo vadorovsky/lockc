@@ -16,8 +16,8 @@ pub const PID_MAX_LIMIT: u32 = 32768;
 
 /// Our arbitrary path length limit.
 pub const PATH_LEN: usize = 4096;
-// pub const PATH_MAX_LIMIT: u32 = 4096;
-pub const PATH_MAX_LIMIT: u32 = 850000;
+pub const PATH_MAX_LIMIT: u32 = 4096;
+// pub const PATH_MAX_LIMIT: u32 = 850000;
 
 pub const MOUNT_TYPE_LEN: usize = 5;
 

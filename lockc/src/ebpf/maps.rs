@@ -40,52 +40,68 @@ pub enum AllowedPathsError {
 }
 
 pub fn init_allowed_paths(bpf: &mut Bpf) -> Result<(), eyre::Error> {
-    let mut path_to_inode: HashMap<_, AccessedPath, InodeId> =
-        bpf.map_mut("PATH_TO_INODE")?.try_into()?;
-    let mut inodes: HashMap<_, InodeId, InodeInfo> = bpf.map_mut("INODES")?.try_into()?;
+    // let mut path_to_inode: HashMap<_, AccessedPath, InodeId> =
+    //     bpf.map_mut("PATH_TO_INODE")?.try_into()?;
+    // let mut inodes: HashMap<_, InodeId, InodeInfo> = bpf.map_mut("INODES")?.try_into()?;
 
-    let mut ii: usize = 0;
+    // let mut ii: usize = 0;
+    // for (i, allowed_path) in SETTINGS.allowed_paths_mount_restricted.iter().enumerate() {
+    //     if Path::new(allowed_path).exists() {
+    //         debug!("initializing path {}", allowed_path);
+    //         for entry_res in WalkDir::new(allowed_path) {
+    //             let entry = entry_res?;
+    //             let cur_path = entry.path();
+    //             if Path::new(cur_path).exists() {
+    //                 debug!(
+    //                     "recursively initializing i {} path {}",
+    //                     ii,
+    //                     cur_path.display()
+    //                 );
+    //                 let cur_path_meta = fs::metadata(cur_path)?;
+    //                 let parent_meta =
+    //                     fs::metadata(cur_path.parent().ok_or(AllowedPathsError::NoParent)?)?;
+
+    //                 debug!("i_ino: {}", cur_path_meta.ino());
+    //                 debug!("i_rdev: {}", cur_path_meta.rdev());
+
+    //                 let ap = AccessedPath::new(cur_path)?;
+    //                 let inode_id = InodeId {
+    //                     i_ino: cur_path_meta.ino(),
+    //                     i_rdev: cur_path_meta.rdev(),
+    //                 };
+    //                 let parent_inode_id = InodeId {
+    //                     i_ino: parent_meta.ino(),
+    //                     i_rdev: parent_meta.rdev(),
+    //                 };
+    //                 let inode_info = InodeInfo {
+    //                     parent: parent_inode_id,
+    //                     permission: FilePermission::MOUNT,
+    //                 };
+
+    //                 path_to_inode.insert(ap, inode_id, 0)?;
+    //                 inodes.insert(inode_id, inode_info, 0)?;
+    //                 ii += 1;
+    //             } else {
+    //                 debug!("path {} does not exist", cur_path.display());
+    //             }
+    //         }
+    //     }
+    // }
+
+    let mut allowed_paths_mount_restricted: HashMap<_, u32, AccessedPath> =
+        bpf.map_mut("ALLOWED_PATHS_MOUNT_RESTRICTED")?.try_into()?;
     for (i, allowed_path) in SETTINGS.allowed_paths_mount_restricted.iter().enumerate() {
-        if Path::new(allowed_path).exists() {
-            debug!("initializing path {}", allowed_path);
-            for entry_res in WalkDir::new(allowed_path) {
-                let entry = entry_res?;
-                let cur_path = entry.path();
-                if Path::new(cur_path).exists() {
-                    debug!(
-                        "recursively initializing i {} path {}",
-                        ii,
-                        cur_path.display()
-                    );
-                    let cur_path_meta = fs::metadata(cur_path)?;
-                    let parent_meta =
-                        fs::metadata(cur_path.parent().ok_or(AllowedPathsError::NoParent)?)?;
+        let ap = AccessedPath::new(allowed_path)?;
+        allowed_paths_mount_restricted.insert(i as u32, ap, 0)?;
+    }
 
-                    debug!("i_ino: {}", cur_path_meta.ino());
-                    debug!("i_rdev: {}", cur_path_meta.rdev());
-
-                    let ap = AccessedPath::new(cur_path)?;
-                    let inode_id = InodeId {
-                        i_ino: cur_path_meta.ino(),
-                        i_rdev: cur_path_meta.rdev(),
-                    };
-                    let parent_inode_id = InodeId {
-                        i_ino: parent_meta.ino(),
-                        i_rdev: parent_meta.rdev(),
-                    };
-                    let inode_info = InodeInfo {
-                        parent: parent_inode_id,
-                        permission: FilePermission::MOUNT,
-                    };
-
-                    path_to_inode.insert(ap, inode_id, 0)?;
-                    inodes.insert(inode_id, inode_info, 0)?;
-                    ii += 1;
-                } else {
-                    debug!("path {} does not exist", cur_path.display());
-                }
-            }
-        }
+    let mut allowed_paths_mount_baseline: HashMap<_, u32, AccessedPath> =
+        bpf.map_mut("ALLOWED_PATHS_MOUNT_BASELINE")?.try_into()?;
+    for (i, allowed_path) in SETTINGS.allowed_paths_mount_baseline.iter().enumerate() {
+        // for entry_res in WalkDir::new(allowed_path) {
+        let ap = AccessedPath::new(allowed_path)?;
+        allowed_paths_mount_baseline.insert(i as u32, ap, 0)?;
+        // }
     }
 
     // let mut mount_baseline: HashMap<_, u32, AccessedPath> =
@@ -118,7 +134,10 @@ pub fn add_container(
     pid: i32,
     policy_level: ContainerPolicyLevel,
 ) -> Result<(), eyre::Error> {
-    debug!("adding container {} to eBPF map", container_id);
+    debug!(
+        "adding container {} with pid {} policy level {} to eBPF map",
+        container_id, pid, policy_level as u32
+    );
 
     let mut containers: HashMap<_, u32, Container> = bpf.map_mut("CONTAINNERS")?.try_into()?;
     let container_key = hash(&container_id)?;

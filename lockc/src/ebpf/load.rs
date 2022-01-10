@@ -2,10 +2,11 @@ use std::path::Path;
 
 use aya::{
     include_bytes_aligned,
-    programs::{BtfTracePoint, FExit, Lsm, ProgramError},
+    programs::{BtfTracePoint, FExit, Lsm, ProgramError, UProbe},
     Bpf, BpfError, BpfLoader, Btf, BtfError,
 };
 use thiserror::Error;
+// use uprobe_ext::FindSymbolResolverExt;
 
 /// Performs the following BPF-related operations:
 /// - loading BPF programs
@@ -85,12 +86,12 @@ pub fn attach_programs<P: AsRef<Path>>(
     syslog.load("syslog", &btf)?;
     syslog.attach()?;
 
-    let vfs_mkdir: &mut FExit = bpf
-        .program_mut("vfs_mkdir")
-        .ok_or(LoadProgramsError::ProgLoad)?
-        .try_into()?;
-    vfs_mkdir.load("vfs_mkdir", &btf)?;
-    vfs_mkdir.attach()?;
+    // let vfs_mkdir: &mut FExit = bpf
+    //     .program_mut("vfs_mkdir")
+    //     .ok_or(LoadProgramsError::ProgLoad)?
+    //     .try_into()?;
+    // vfs_mkdir.load("vfs_mkdir", &btf)?;
+    // vfs_mkdir.attach()?;
 
     // let filename_lookup: &mut FExit = bpf
     //     .program_mut("filename_lookup")
@@ -99,12 +100,20 @@ pub fn attach_programs<P: AsRef<Path>>(
     // filename_lookup.load("filename_lookup", &btf)?;
     // filename_lookup.attach()?;
 
-    // let sb_mount: &mut Lsm = bpf
-    //     .program_mut("sb_mount")
-    //     .ok_or(LoadProgramsError::ProgLoad)?
-    //     .try_into()?;
-    // sb_mount.load("sb_mount", &btf)?;
-    // sb_mount.attach()?;
+    let sb_mount: &mut Lsm = bpf
+        .program_mut("sb_mount")
+        .ok_or(LoadProgramsError::ProgLoad)?
+        .try_into()?;
+    sb_mount.load("sb_mount", &btf)?;
+    sb_mount.attach()?;
+
+    let add_container: &mut UProbe = bpf
+        .program_mut("add_container")
+        .ok_or(LoadProgramsError::ProgLoad)?
+        .try_into()?;
+    add_container.load()?;
+    // skel.links.add_container = link_add_container.into();
+    add_container.attach_own_addr(false, -1, add_container as &mut ())?;
 
     Ok(())
 }

@@ -13848,7 +13848,7 @@ pub struct netns_ipv4 {
     pub fib_has_custom_rules: bool_,
     pub fib_has_custom_local_routes: bool_,
     pub fib_offload_disabled: bool_,
-    pub fib_num_tclassid_users: ::aya_bpf::cty::c_int,
+    pub fib_num_tclassid_users: atomic_t,
     pub fib_table_hash: *mut hlist_head,
     pub fibnl: *mut sock,
     pub icmp_sk: *mut *mut sock,
@@ -17217,7 +17217,11 @@ pub struct fib_rules_ops {
         ) -> ::aya_bpf::cty::c_int,
     >,
     pub suppress: ::core::option::Option<
-        unsafe extern "C" fn(arg1: *mut fib_rule, arg2: *mut fib_lookup_arg) -> bool_,
+        unsafe extern "C" fn(
+            arg1: *mut fib_rule,
+            arg2: ::aya_bpf::cty::c_int,
+            arg3: *mut fib_lookup_arg,
+        ) -> bool_,
     >,
     pub match_: ::core::option::Option<
         unsafe extern "C" fn(
