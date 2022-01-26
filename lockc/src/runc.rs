@@ -682,7 +682,7 @@ impl RuncWatcher {
             }
         }
 
-        debug!("starting work loop");
+        debug!("starting runc work loop");
 
         let mut fds = [PollFd::new(self.fd.as_raw_fd(), PollFlags::POLLIN)];
         loop {

@@ -12,6 +12,7 @@ use tracing_subscriber::FmtSubscriber;
 
 use lockc::{
     communication::EbpfCommand,
+    docker::DockerWatcher,
     load::{attach_programs, load_bpf},
     maps::{add_container, add_process, delete_container, init_allowed_paths},
     runc::RuncWatcher,
@@ -26,11 +27,18 @@ enum FanotifyError {
 
 /// Runs an fanotify-based runc watcher, which registers containers every time
 /// they are created or deleted.
-fn fanotify(
+fn runc_watcher(
     fanotify_bootstrap_rx: oneshot::Receiver<()>,
     ebpf_tx: mpsc::Sender<EbpfCommand>,
 ) -> Result<()> {
     RuncWatcher::new(fanotify_bootstrap_rx, ebpf_tx)?.work_loop()?;
+    Ok(())
+}
+
+/// Runs an fanotify-based Docker watcher, which monitors the Docker socket and
+/// rejects attempts of changing the policy level by non-root users.
+fn docker_watcher() -> Result<()> {
+    DockerWatcher::new()?.work_loop()?;
     Ok(())
 }
 
@@ -216,7 +224,8 @@ fn main() -> Result<()> {
     let (ebpf_tx, ebpf_rx) = mpsc::channel::<EbpfCommand>(100);
 
     // Start the thread (but it's going to wait for bootstrap).
-    let fanotify_thread = thread::spawn(move || fanotify(fanotify_bootstrap_rx, ebpf_tx));
+    let runc_thread = thread::spawn(move || runc_watcher(fanotify_bootstrap_rx, ebpf_tx));
+    let docker_thread = thread::spawn(move || docker_watcher());
 
     // Step 2: Setup a Tokio runtime for asynchronous part of lockc, which
     // takes care of:
@@ -229,8 +238,11 @@ fn main() -> Result<()> {
 
     rt.block_on(ebpf(fanotify_bootstrap_tx, ebpf_rx))?;
 
-    if let Err(e) = fanotify_thread.join() {
-        error!("failed to join the fanotify thread: {:?}", e);
+    if let Err(e) = runc_thread.join() {
+        error!("failed to join the runc thread: {:?}", e);
+    }
+    if let Err(e) = docker_thread.join() {
+        error!("failed to join the docker thread {:?}", e);
     }
 
     Ok(())
