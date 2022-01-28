@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
+#include "limits.h"
 #include "vmlinux.h"
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_helpers.h>
@@ -22,6 +23,8 @@
  */
 #define MOUNT_TYPE_LEN 5
 #define MOUNT_TYPE_BIND "bind"
+
+#define DOCKER_SOCK "/var/run/docker.sock"
 
 /*
  * handle_process - the handler which monitors all new tasks/functions created
@@ -483,6 +486,44 @@ int BPF_PROG(open_audit, struct file *file, int ret_prev)
 	}
 	bpf_printk("open: deny\n");
 	ret = -EPERM;
+
+out:
+	if (ret_prev != 0)
+		return ret_prev;
+	return ret;
+}
+
+SEC("lsm/socket_sendmsg")
+int BPF_PROG(socket_sendmsg, struct socket *sock, struct msghdr *msg, int size,
+	     int ret_prev)
+{
+	unsigned char path_safe[PATH_LEN];
+	int ret = 0;
+
+	struct unix_sock *us = (struct unix_sock *)BPF_CORE_READ(sock, sk);
+	struct unix_address *addr = BPF_CORE_READ(us, addr);
+
+	struct sock *peer = BPF_CORE_READ(us, peer);
+
+	unsigned int offset = offsetof(struct unix_address, name) +
+			      offsetof(struct sockaddr_un, sun_path);
+
+	// Check if message is going to the Docker socket.
+	if (BPF_CORE_READ(addr, len) > 0) {
+		if (unlikely(bpf_probe_read_kernel_str(&path_safe, PATH_LEN,
+						       (char *)addr + offset) <
+			     0))
+			goto out;
+		if (strcmp(path_safe, DOCKER_SOCK, PATH_LEN) != 0)
+			goto out;
+	} else {
+		goto out;
+	}
+
+	kuid_t peer_uid = BPF_CORE_READ(peer, sk_uid);
+	bpf_printk("docker socket peer_uid: %lu\n", peer_uid.val);
+	if (peer_uid.val != 0)
+		ret = -EPERM;
 
 out:
 	if (ret_prev != 0)
