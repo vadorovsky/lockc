@@ -29,8 +29,9 @@ enum FanotifyError {
 fn fanotify(
     fanotify_bootstrap_rx: oneshot::Receiver<()>,
     ebpf_tx: mpsc::Sender<EbpfCommand>,
+    in_k8s_pod: bool,
 ) -> Result<()> {
-    RuncWatcher::new(fanotify_bootstrap_rx, ebpf_tx)?.work_loop()?;
+    RuncWatcher::new(fanotify_bootstrap_rx, ebpf_tx, in_k8s_pod)?.work_loop()?;
     Ok(())
 }
 
@@ -144,11 +145,28 @@ async fn ebpf(
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(long, default_value = "info", possible_values = &["trace", "debug", "info", "warn", "error"])]
+    #[clap(
+        long,
+        env = "LOCKC_LOG_LEVEL",
+        default_value = "info",
+        env = "foo",
+        possible_values = &["trace", "debug", "info", "warn", "error"]
+    )]
     log_level: String,
 
-    #[clap(long, default_value = "text", possible_values = &["json", "text"])]
+    #[clap(
+        long,
+        env = "LOCKC_LOG_FMT",
+        default_value = "text",
+        possible_values = &["json", "text"]
+    )]
     log_fmt: String,
+
+    #[clap(long, env = "LOCKC_IN_K8S_POD")]
+    in_k8s_pod: bool,
+
+    #[clap(long, env = "LOCKC_CHECK_LSM_SKIP")]
+    skip_lsm_check: bool,
 }
 
 #[derive(Error, Debug)]
@@ -216,7 +234,8 @@ fn main() -> Result<()> {
     let (ebpf_tx, ebpf_rx) = mpsc::channel::<EbpfCommand>(100);
 
     // Start the thread (but it's going to wait for bootstrap).
-    let fanotify_thread = thread::spawn(move || fanotify(fanotify_bootstrap_rx, ebpf_tx));
+    let fanotify_thread =
+        thread::spawn(move || fanotify(fanotify_bootstrap_rx, ebpf_tx, args.in_k8s_pod));
 
     // Step 2: Setup a Tokio runtime for asynchronous part of lockc, which
     // takes care of:

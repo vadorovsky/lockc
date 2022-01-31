@@ -294,6 +294,8 @@ enum ContainerAction {
 pub struct RuncWatcher {
     bootstrap_rx: oneshot::Receiver<()>,
     ebpf_tx: mpsc::Sender<EbpfCommand>,
+    in_k8s_pod: bool,
+
     fd: Fanotify,
 }
 
@@ -337,6 +339,7 @@ impl RuncWatcher {
     pub fn new(
         bootstrap_rx: oneshot::Receiver<()>,
         ebpf_tx: mpsc::Sender<EbpfCommand>,
+        in_k8s_pod: bool,
     ) -> Result<Self, io::Error> {
         let runc_paths = vec![
             "/usr/bin/runc",
@@ -378,6 +381,7 @@ impl RuncWatcher {
         Ok(RuncWatcher {
             bootstrap_rx,
             ebpf_tx,
+            in_k8s_pod,
             fd,
         })
     }
