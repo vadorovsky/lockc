@@ -14,7 +14,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 anyhow = "1.0"
-aya = { git = "https://github.com/aya-rs/aya", branch = "main", features=["async_tokio"] }
+aya = { git = "https://github.com/vadorovsky/aya", branch = "sk-buff-socket-uid", features=["async_tokio"] }
 bindgen = "0.59"
 byteorder = "1.4"
 clap = { version = "3.0", features = ["derive"] }

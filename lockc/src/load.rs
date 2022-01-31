@@ -7,8 +7,15 @@ use aya::{
 };
 use thiserror::Error;
 
-/// Loads BPF programs from the object file built with clang.
-pub fn load_bpf<P: AsRef<Path>>(path_base_r: P) -> Result<Bpf, BpfError> {
+pub fn load_bpf<P: AsRef<Path>>() -> Result<Bpf, BpfError> {
+    let data = include_bytes_aligned!("../../target/bpfel-unknown-none/release/lockc");
+    let bpf = BpfLoader::new().load(data)?;
+
+    Ok(bpf)
+}
+
+/// Loads legacy BPF programs from the object file built with clang.
+pub fn load_bpf_legacy<P: AsRef<Path>>(path_base_r: P) -> Result<Bpf, BpfError> {
     let path_base = path_base_r.as_ref();
     let data = include_bytes_aligned!(concat!(env!("OUT_DIR"), "/lockc.bpf.o"));
     let bpf = BpfLoader::new().map_pin_path(path_base).load(data)?;
