@@ -27,7 +27,7 @@ pub enum MapOperationError {
 /// decision whether to allow a bind mount for a given container.
 pub fn init_allowed_paths(bpf: &mut Bpf, config: &Config) -> Result<(), MapOperationError> {
     let mut allowed_paths_mount_restricted: HashMap<_, u32, accessed_path> =
-        bpf.map_mut("ap_mnt_restr")?.try_into()?;
+        bpf.map_mut("AP_MNT_RESTR")?.try_into()?;
     for (i, allowed_path_s) in config
         .get::<Vec<String>>("allowed_paths_mount_restricted")?
         .iter()
@@ -38,7 +38,7 @@ pub fn init_allowed_paths(bpf: &mut Bpf, config: &Config) -> Result<(), MapOpera
     }
 
     let mut allowed_paths_mount_baseline: HashMap<_, u32, accessed_path> =
-        bpf.map_mut("ap_mnt_base")?.try_into()?;
+        bpf.map_mut("AP_MNT_BASE")?.try_into()?;
     for (i, allowed_path_s) in config
         .get::<Vec<String>>("allowed_paths_mount_baseline")?
         .iter()
@@ -49,7 +49,7 @@ pub fn init_allowed_paths(bpf: &mut Bpf, config: &Config) -> Result<(), MapOpera
     }
 
     let mut allowed_paths_access_restricted: HashMap<_, u32, accessed_path> =
-        bpf.map_mut("ap_acc_restr")?.try_into()?;
+        bpf.map_mut("AP_ACC_RESTR")?.try_into()?;
     for (i, allowed_path_s) in config
         .get::<Vec<String>>("allowed_paths_access_restricted")?
         .iter()
@@ -60,7 +60,7 @@ pub fn init_allowed_paths(bpf: &mut Bpf, config: &Config) -> Result<(), MapOpera
     }
 
     let mut allowed_paths_access_baseline: HashMap<_, u32, accessed_path> =
-        bpf.map_mut("ap_acc_base")?.try_into()?;
+        bpf.map_mut("AP_ACC_BASE")?.try_into()?;
     for (i, allowed_path_s) in config
         .get::<Vec<String>>("allowed_paths_access_baseline")?
         .iter()
@@ -71,7 +71,7 @@ pub fn init_allowed_paths(bpf: &mut Bpf, config: &Config) -> Result<(), MapOpera
     }
 
     let mut denied_paths_access_restricted: HashMap<_, u32, accessed_path> =
-        bpf.map_mut("dp_acc_restr")?.try_into()?;
+        bpf.map_mut("DP_ACC_RESTR")?.try_into()?;
     for (i, allowed_path_s) in config
         .get::<Vec<String>>("denied_paths_access_restricted")?
         .iter()
@@ -82,7 +82,7 @@ pub fn init_allowed_paths(bpf: &mut Bpf, config: &Config) -> Result<(), MapOpera
     }
 
     let mut denied_paths_access_baseline: HashMap<_, u32, accessed_path> =
-        bpf.map_mut("dp_acc_base")?.try_into()?;
+        bpf.map_mut("DP_ACC_BASE")?.try_into()?;
     for (i, allowed_path_s) in config
         .get::<Vec<String>>("denied_paths_access_baseline")?
         .iter()
@@ -105,12 +105,12 @@ pub fn add_container(
         container = container_id.as_str(),
         pid = pid,
         policy_level = policy_level,
-        map = "containers",
+        map = "CONTAINERS",
         "adding container to eBPF map",
     );
 
     let mut containers: HashMap<_, container_id, container> =
-        bpf.map_mut("containers")?.try_into()?;
+        bpf.map_mut("CONTAINERS")?.try_into()?;
     let container_key = container_id::new(&container_id)?;
     let container = container { policy_level };
     containers.insert(container_key, container, 0)?;
@@ -127,17 +127,17 @@ pub fn add_container(
 pub fn delete_container(bpf: &mut Bpf, container_id: String) -> Result<(), MapOperationError> {
     debug!(
         container = container_id.as_str(),
-        map = "containers",
+        map = "CONTAINERS",
         "deleting container from eBPF map"
     );
 
     let mut containers: HashMap<_, container_id, container> =
-        bpf.map_mut("containers")?.try_into()?;
+        bpf.map_mut("CONTAINERS")?.try_into()?;
     let container_key = container_id::new(&container_id)?;
     containers.remove(&container_key)?;
 
-    let processes: HashMap<_, i32, process> = bpf.map("processes")?.try_into()?;
-    let mut processes_mut: HashMap<_, i32, process> = bpf.map_mut("process")?.try_into()?;
+    let processes: HashMap<_, i32, process> = bpf.map("PROCESSES")?.try_into()?;
+    let mut processes_mut: HashMap<_, i32, process> = bpf.map_mut("PROCESSES")?.try_into()?;
     for res in processes.iter() {
         let (pid, process) = res?;
         if process.container_id.id == container_key.id {
@@ -152,11 +152,11 @@ pub fn add_process(bpf: &mut Bpf, container_id: String, pid: i32) -> Result<(), 
     debug!(
         pid = pid,
         container = container_id.as_str(),
-        map = "processes",
+        map = "PROCESSES",
         "adding process to eBPF map",
     );
 
-    let mut processes: HashMap<_, i32, process> = bpf.map_mut("processes")?.try_into()?;
+    let mut processes: HashMap<_, i32, process> = bpf.map_mut("PROCESSES")?.try_into()?;
     let container_key = container_id::new(&container_id)?;
     let process = process {
         container_id: container_key,

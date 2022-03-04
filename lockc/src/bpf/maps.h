@@ -30,7 +30,7 @@ struct bpf_elf_map {
  * containers - BPF map containing the info about a policy which should be
  * enforced on the given container.
  */
-struct bpf_elf_map SEC("maps/containers") containers = {
+struct bpf_elf_map SEC("maps/CONTAINERS") containers = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PID_MAX_LIMIT,
 	.key_size = sizeof(struct container_id),
@@ -43,7 +43,7 @@ struct bpf_elf_map SEC("maps/containers") containers = {
  * value of this map, which represents the container, is a key of `containers`
  * BPF map, so it can be used immediately for lookups in `containers` map.
  */
-struct bpf_elf_map SEC("maps/processes") processes = {
+struct bpf_elf_map SEC("maps/PROCESSES") processes = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PID_MAX_LIMIT,
 	.key_size = sizeof(pid_t),
@@ -57,7 +57,7 @@ struct bpf_elf_map SEC("maps/processes") processes = {
  * paths used by default by container runtimes, not paths mounted with the -v
  * option.
  */
-struct bpf_elf_map SEC("maps/ap_mnt_restr") ap_mnt_restr = {
+struct bpf_elf_map SEC("maps/AP_MNT_RESTR") ap_mnt_restr = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PATH_MAX_LIMIT,
 	.key_size = sizeof(u32),
@@ -71,7 +71,7 @@ struct bpf_elf_map SEC("maps/ap_mnt_restr") ap_mnt_restr = {
  * used by default by container runtimes and paths we allow to mount with -v
  * option.
  */
-struct bpf_elf_map SEC("maps/ap_mnt_base") ap_mnt_base = {
+struct bpf_elf_map SEC("maps/AP_MNT_BASE") ap_mnt_base = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PATH_MAX_LIMIT,
 	.key_size = sizeof(u32),
@@ -84,7 +84,7 @@ struct bpf_elf_map SEC("maps/ap_mnt_base") ap_mnt_base = {
  * (open, create, delete, move etc.) inside filesystems of restricted
  * containers.
  */
-struct bpf_elf_map SEC("maps/ap_acc_restr") ap_acc_restr = {
+struct bpf_elf_map SEC("maps/AP_ACC_RESTR") ap_acc_restr = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PATH_MAX_LIMIT,
 	.key_size = sizeof(u32),
@@ -96,7 +96,7 @@ struct bpf_elf_map SEC("maps/ap_acc_restr") ap_acc_restr = {
  * ap_acc_base - BPF map which contains the path prefixes allowed to access
  * (open, create, delete, move etc.) inside filesystems of baseline containers.
  */
-struct bpf_elf_map SEC("maps/ap_acc_base") ap_acc_base = {
+struct bpf_elf_map SEC("maps/AP_ACC_BASE") ap_acc_base = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PATH_MAX_LIMIT,
 	.key_size = sizeof(u32),
@@ -109,7 +109,7 @@ struct bpf_elf_map SEC("maps/ap_acc_base") ap_acc_base = {
  * (open, create, delete, move etc.) inside filesystems of restricted
  * containers.
  */
-struct bpf_elf_map SEC("maps/dp_acc_restr") dp_acc_restr = {
+struct bpf_elf_map SEC("maps/DP_ACC_RESTR") dp_acc_restr = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PATH_MAX_LIMIT,
 	.key_size = sizeof(u32),
@@ -121,7 +121,7 @@ struct bpf_elf_map SEC("maps/dp_acc_restr") dp_acc_restr = {
  * dp_acc_base - BPF map which contains the path prefixes denied to access
  * (open, create, delete, move etc.) inside filesystems of baseline containers.
  */
-struct bpf_elf_map SEC("maps/dp_acc_base") dp_acc_base = {
+struct bpf_elf_map SEC("maps/DP_ACC_BASE") dp_acc_base = {
 	.type = BPF_MAP_TYPE_HASH,
 	.max_entries = PATH_MAX_LIMIT,
 	.key_size = sizeof(u32),

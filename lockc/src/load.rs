@@ -16,10 +16,21 @@ pub enum LoadError {
     Bpf(#[from] BpfError),
 }
 
-/// Loads BPF programs from the object file built with clang.
+/// Loads an object file with eBPF programs and (re-)pins maps in BPFFS.
 pub fn load_bpf<P: AsRef<Path>>(path_base_r: P) -> Result<Bpf, LoadError> {
     let path_base = path_base_r.as_ref();
     std::fs::create_dir_all(&path_base)?;
+
+    let data = include_bytes_aligned!("../../target/bpfel-unknown-none/release/lockc");
+    let bpf = BpfLoader::new().map_pin_path(path_base).load(data)?;
+
+    Ok(bpf)
+}
+
+/// Loads and object file with legacy eBPF programs (written in C) and
+/// (re-)pins maps in BPFFS.
+pub fn load_bpf_legacy<P: AsRef<Path>>(path_base_r: P) -> Result<Bpf, LoadError> {
+    let path_base = path_base_r.as_ref();
 
     let data = include_bytes_aligned!(concat!(env!("OUT_DIR"), "/lockc.bpf.o"));
     let bpf = BpfLoader::new().map_pin_path(path_base).load(data)?;
@@ -39,6 +50,7 @@ pub enum AttachError {
     ProgLoad,
 }
 
+/// Loads and attaches eBPF programs.
 pub fn attach_programs(bpf: &mut Bpf) -> Result<(), AttachError> {
     let btf = Btf::from_sys_fs()?;
 
@@ -49,12 +61,26 @@ pub fn attach_programs(bpf: &mut Bpf) -> Result<(), AttachError> {
     sched_process_fork.load("sched_process_fork", &btf)?;
     sched_process_fork.attach()?;
 
-    let clone_audit: &mut Lsm = bpf
-        .program_mut("task_alloc")
+    let sched_process_exec: &mut BtfTracePoint = bpf
+        .program_mut("sched_process_exec")
         .ok_or(AttachError::ProgLoad)?
         .try_into()?;
-    clone_audit.load("task_alloc", &btf)?;
-    clone_audit.attach()?;
+    sched_process_exec.load("sched_process_exec", &btf)?;
+    sched_process_exec.attach()?;
+
+    let sched_process_exit: &mut BtfTracePoint = bpf
+        .program_mut("sched_process_exit")
+        .ok_or(AttachError::ProgLoad)?
+        .try_into()?;
+    sched_process_exit.load("sched_process_exit", &btf)?;
+    sched_process_exit.attach()?;
+
+    Ok(())
+}
+
+/// Loads and attaches legacy eBPF programs (written in C).
+pub fn attach_programs_legacy(bpf: &mut Bpf) -> Result<(), AttachError> {
+    let btf = Btf::from_sys_fs()?;
 
     let syslog: &mut Lsm = bpf
         .program_mut("syslog")

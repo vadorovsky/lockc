@@ -1,5 +1,2 @@
 [workspace]
-members = [
-    "lockc",
-    "xtask",
-]
+members = ["lockc", "lockc-common", "xtask"]

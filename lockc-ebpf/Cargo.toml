@@ -1,0 +1,18 @@
+[package]
+name = "lockc-ebpf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aya-bpf = { git = "http://github.com/aya-rs/aya", branch = "main" }
+lockc-common = { path = "../lockc-common" }
+
+[[bin]]
+name = "lockc"
+path = "src/main.rs"
+
+[profile.release]
+panic = "abort"
+
+[workspace]
+members = []

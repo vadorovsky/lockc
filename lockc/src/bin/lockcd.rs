@@ -12,7 +12,7 @@ use tracing_subscriber::FmtSubscriber;
 
 use lockc::{
     communication::EbpfCommand,
-    load::{attach_programs, load_bpf},
+    load::{attach_programs, attach_programs_legacy, load_bpf, load_bpf_legacy},
     maps::{add_container, add_process, delete_container, init_allowed_paths},
     runc::RuncWatcher,
     settings::new_config,
@@ -60,10 +60,12 @@ async fn ebpf(
         .join("lockc");
 
     let mut bpf = load_bpf(&path_base)?;
+    let mut bpf_legacy = load_bpf_legacy(&path_base)?;
 
-    init_allowed_paths(&mut bpf, &config)?;
+    init_allowed_paths(&mut bpf_legacy, &config)?;
     debug!("allowed paths initialized");
     attach_programs(&mut bpf)?;
+    attach_programs_legacy(&mut bpf_legacy)?;
     debug!("attached programs");
 
     // Bootstrap the fanotify thread.
@@ -79,7 +81,7 @@ async fn ebpf(
                 policy_level,
                 responder_tx,
             } => {
-                let res = add_container(&mut bpf, container_id, pid, policy_level);
+                let res = add_container(&mut bpf_legacy, container_id, pid, policy_level);
                 match responder_tx.send(res) {
                     Ok(_) => {}
                     Err(_) => error!(
@@ -92,7 +94,7 @@ async fn ebpf(
                 container_id,
                 responder_tx,
             } => {
-                let res = delete_container(&mut bpf, container_id);
+                let res = delete_container(&mut bpf_legacy, container_id);
                 match responder_tx.send(res) {
                     Ok(_) => {}
                     Err(_) => error!(
@@ -106,7 +108,7 @@ async fn ebpf(
                 pid,
                 responder_tx,
             } => {
-                let res = add_process(&mut bpf, container_id, pid);
+                let res = add_process(&mut bpf_legacy, container_id, pid);
                 match responder_tx.send(res) {
                     Ok(_) => {}
                     Err(_) => error!(
